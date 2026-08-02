@@ -16,8 +16,6 @@ FitLink/
 ## Branch strategy
 
 - `main` — stable, production-ready
-- `dev` — integration branch
-- `feature/*` — work branches
 
 ## Getting started
 
