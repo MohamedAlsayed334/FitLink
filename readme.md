@@ -16,6 +16,8 @@ FitLink/
 ## Branch strategy
 
 - `main` — stable, production-ready
+- `dev` — integration branch where feature branches merge before going to main
+- `feature/*` — one branch per task/feature (e.g. `feature/auth-login`), created from `dev`
 
 ## Getting started
 
