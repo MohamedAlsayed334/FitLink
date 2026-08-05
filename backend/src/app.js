@@ -2,12 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import requestLogger from './middleware/requestLogger.js';
 import errorHandler from './middleware/errorHandler.js';
+import routes from './routes/index.js';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
+
+app.use('/api', routes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
