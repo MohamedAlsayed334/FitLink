@@ -40,6 +40,9 @@ const gymSubscriptionSchema = new Schema(
 
 gymSubscriptionSchema.index({ traineeId: 1, status: 1 });
 
+// Employee dashboard
+gymSubscriptionSchema.index({ handledBy: 1, createdAt: -1 });
+
 const gymSubscriptionModel = mongoose.model(
   "gymSubscription",
   gymSubscriptionSchema,

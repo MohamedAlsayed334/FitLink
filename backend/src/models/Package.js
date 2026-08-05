@@ -23,4 +23,4 @@ packageSchema.set("toJSON", { virtuals: true });
 packageSchema.set("toObject", { virtuals: true });
 
 const packageModel = mongoose.model("package", packageSchema);
-export default Package;
+export default packageModel;

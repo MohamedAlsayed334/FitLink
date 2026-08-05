@@ -61,6 +61,9 @@ coachSubscriptionSchema.index(
   { unique: true, partialFilterExpression: { status: "active" } },
 );
 
+// Coach's active trainees query
+coachSubscriptionSchema.index({ coachId: 1, status: 1 });
+
 const coachSubscriptionModel = mongoose.model(
   "coachSubscription",
   coachSubscriptionSchema,
