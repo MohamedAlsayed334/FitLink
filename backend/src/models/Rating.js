@@ -44,5 +44,8 @@ const ratingSchema = new Schema(
 ratingSchema.index({ subscriptionId: 1 }, { unique: true });
 ratingSchema.index({ coachId: 1, isVisible: 1 });
 
+// Admin moderation queue
+ratingSchema.index({ moderationStatus: 1, createdAt: -1 });
+
 const ratingModel = mongoose.model("rating", ratingSchema);
 export default ratingModel;
