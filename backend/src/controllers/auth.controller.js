@@ -1,7 +1,9 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import userModel from "../models/User.js";
-import config from "../config/env.js";
+import {
+  hashPassword,
+  comparePassword,
+  signToken,
+} from "../services/auth.service.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 const ALLOWED_LST = ["trainee", "coach"];
@@ -11,6 +13,18 @@ export const register = asyncHandler(async (req, res) => {
 
   if (!email || !password || !role || !firstName || !lastName) {
     const error = new Error("Please fill all required fields");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    const error = new Error("Please provide a valid email");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (password.length < 6) {
+    const error = new Error("Password must be at least 6 characters");
     error.statusCode = 400;
     throw error;
   }
@@ -29,7 +43,7 @@ export const register = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await hashPassword(password);
 
   const userData = {
     email,
@@ -54,11 +68,7 @@ export const register = asyncHandler(async (req, res) => {
 
   const user = await userModel.create(userData);
 
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    config.JWT_SECRET,
-    { expiresIn: config.JWT_EXPIRES_IN },
-  );
+  const token = signToken({ id: user._id, role: user.role });
 
   return res.status(201).json({ success: true, data: { token, user } });
 });
@@ -74,17 +84,19 @@ export const login = asyncHandler(async (req, res) => {
 
   const user = await userModel.findOne({ email }).select("+password");
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  if (!user || !(await comparePassword(password, user.password))) {
     const error = new Error("Invalid email or password");
     error.statusCode = 401;
     throw error;
   }
 
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    config.JWT_SECRET,
-    { expiresIn: config.JWT_EXPIRES_IN },
-  );
+  if (user.isActive === false) {
+    const error = new Error("Account is deactivated");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const token = signToken({ id: user._id, role: user.role });
 
   user.password = undefined;
 

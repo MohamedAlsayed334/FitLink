@@ -17,6 +17,12 @@ export const listActivePackages = asyncHandler(async (req, res) => {
 export const createPackage = asyncHandler(async (req, res) => {
   const { type, name, durationMonths, basePrice, discountPercent } = req.body;
 
+  if (!type || !name || !durationMonths || !basePrice) {
+    const err = new Error("Please fill all required fields");
+    err.statusCode = 400;
+    throw err;
+  }
+
   const newPackage = await Package.create({
     type,
     name,
@@ -35,6 +41,12 @@ export const createPackage = asyncHandler(async (req, res) => {
 export const updatePackage = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, basePrice, discountPercent } = req.body;
+
+  if (name === undefined && basePrice === undefined && discountPercent === undefined) {
+    const err = new Error("Please provide at least one field to update");
+    err.statusCode = 400;
+    throw err;
+  }
 
   const updated = await Package.findByIdAndUpdate(
     id,

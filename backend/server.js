@@ -2,9 +2,14 @@ import mongoose from "mongoose";
 import app from "./src/app.js";
 import { connectDB } from "./src/config/db.js";
 import config from "./src/config/env.js";
+import {
+  startSweepScheduler,
+  stopSweepScheduler,
+} from "./src/jobs/subscriptionSweep.js";
 
 async function startServer() {
   await connectDB();
+  startSweepScheduler();
 
   const server = app.listen(config.PORT, () => {
     console.log(`Server running on port ${config.PORT}`);
@@ -13,6 +18,7 @@ async function startServer() {
 
   const shutdown = async (signal) => {
     console.log(`${signal} received. Shutting down gracefully...`);
+    stopSweepScheduler();
     server.close(async () => {
       try {
         await mongoose.disconnect();

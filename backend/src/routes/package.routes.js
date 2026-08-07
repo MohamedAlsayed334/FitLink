@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { protect } from "../middleware/auth.js";
+import { requireRole } from "../middleware/role.js";
 import {
   listActivePackages,
   createPackage,
@@ -11,9 +13,9 @@ const router = Router();
 
 router.get("/", listActivePackages);
 
-// for admin only (auth w role gotta be added)
-router.post("/", createPackage);
-router.put("/:id", updatePackage);
-router.patch("/:id/deactivate", deactivatePackage);
+// for admin only
+router.post("/", protect, requireRole("admin"), createPackage);
+router.put("/:id", protect, requireRole("admin"), updatePackage);
+router.patch("/:id/deactivate", protect, requireRole("admin"), deactivatePackage);
 
 export default router;
