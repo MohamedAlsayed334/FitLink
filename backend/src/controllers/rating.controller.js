@@ -105,11 +105,25 @@ export const getCoachReviews = asyncHandler(async (req, res) => {
 });
 
 export const getPendingReviews = asyncHandler(async (req, res) => {
-  const reviews = await Rating.find({ moderationStatus: "pending" })
-    .sort({ createdAt: -1 })
-    .populate("traineeId", "firstName lastName avatar")
-    .populate("coachId", "firstName lastName avatar");
-  res.status(200).json({ success: true, data: reviews });
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const offset = parseInt(req.query.offset, 10) || 0;
+
+  const filter = { moderationStatus: "pending" };
+
+  const [total, reviews] = await Promise.all([
+    Rating.countDocuments(filter),
+    Rating.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .populate("traineeId", "firstName lastName avatar")
+      .populate("coachId", "firstName lastName avatar"),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: { items: reviews, total, limit, offset },
+  });
 });
 
 export const moderateReview = asyncHandler(async (req, res) => {

@@ -33,6 +33,9 @@ const gymSubscriptionSchema = new Schema(
       default: "pending",
     },
 
+    // Day-thresholds already notified for (e.g. 7, 1) — prevents duplicate reminders
+    expiryRemindersSent: { type: [Number], default: [] },
+
     history: { type: [historyEntrySchema], default: [] },
   },
   { timestamps: true },
