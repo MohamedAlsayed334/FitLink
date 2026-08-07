@@ -2,113 +2,91 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/User.js";
 import config from "../config/env.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
-export const register = async (req, res) => {
-  try {
-    const { email, password, role, firstName, lastName, phone } = req.body;
-    if (!email || !password || !role || !firstName || !lastName) {
-      return res.status(400).json({
-        success: false,
-        message: "Please fill all required fields",
-      });
-    }
+const ALLOWED_LST = ["trainee", "coach"];
 
-    const existingUser = await userModel.findOne({ email });
+export const register = asyncHandler(async (req, res) => {
+  const { email, password, role, firstName, lastName, phone } = req.body;
 
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "Email already exists",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await userModel.create({
-      email,
-      password: hashedPassword,
-      role,
-      firstName,
-      lastName,
-      phone,
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  if (!email || !password || !role || !firstName || !lastName) {
+    const error = new Error("Please fill all required fields");
+    error.statusCode = 400;
+    throw error;
   }
-};
 
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required",
-      });
-    }
-
-    const user = await userModel.findOne({ email }).select("+password");
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-      },
-      config.JWT_SECRET,
-      {
-        expiresIn: config.JWT_EXPIRES_IN,
-      },
-    );
-
-    user.password = undefined;
-
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-      data: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  if (!ALLOWED_LST.includes(role)) {
+    const error = new Error("Role must be either trainee or coach");
+    error.statusCode = 400;
+    throw error;
   }
-};
+
+  const existingUser = await userModel.findOne({ email });
+
+  if (existingUser) {
+    const error = new Error("Email already exists");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const userData = {
+    email,
+    password: hashedPassword,
+    role,
+    firstName,
+    lastName,
+    phone,
+  };
+
+  if (role === "coach") {
+    userData.coachProfile = {
+      specialization: [],
+      experience: 0,
+      certifications: [],
+      isVerified: false,
+      isAcceptingClients: true,
+      averageRating: 0,
+      totalReviews: 0,
+    };
+  }
+
+  const user = await userModel.create(userData);
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    config.JWT_SECRET,
+    { expiresIn: config.JWT_EXPIRES_IN },
+  );
+
+  return res.status(201).json({ success: true, data: { token, user } });
+});
+
+export const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    const error = new Error("Email and password are required");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await userModel.findOne({ email }).select("+password");
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    const error = new Error("Invalid email or password");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    config.JWT_SECRET,
+    { expiresIn: config.JWT_EXPIRES_IN },
+  );
+
+  user.password = undefined;
+
+  return res.status(200).json({ success: true, data: { token, user } });
+});
