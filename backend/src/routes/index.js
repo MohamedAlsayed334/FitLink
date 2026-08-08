@@ -8,6 +8,7 @@ import coachSubscriptionRoutes from "./coachSubscription.routes.js";
 import ratingRoutes from "./rating.routes.js";
 import adminRoutes from "./admin.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import chatRoutes from "./chat.routes.js";
 
 const router = Router();
 router.use("/auth", authRoutes);
@@ -19,6 +20,7 @@ router.use("/coach-subscriptions", coachSubscriptionRoutes);
 router.use("/ratings", ratingRoutes);
 router.use("/admin", adminRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/chat", chatRoutes);
 
 // Placeholder interoperability route — scope not finalized yet.
 router.get("/interactions", (req, res) => {
