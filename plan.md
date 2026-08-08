@@ -88,40 +88,46 @@ fitlink/
 │   │   ├── config
 │   │   │   ├── db.js              # mongoose connection
 │   │   │   └── env.js             # loads/validates env vars
+│   │   ├── jobs
+│   │   │   └── subscriptionSweep.js  # auto-expire subs + expiry reminders (invoked from server.js)
 │   │   ├── controllers
 │   │   │   ├── admin.controller.js
 │   │   │   ├── auth.controller.js
 │   │   │   ├── coach.controller.js
 │   │   │   ├── coachSubscription.controller.js
 │   │   │   ├── gymSubscription.controller.js
+│   │   │   ├── notification.controller.js
 │   │   │   ├── package.controller.js
 │   │   │   ├── rating.controller.js
 │   │   │   └── user.controller.js
 │   │   ├── middleware
-│   │   │   ├── auth.js            # real JWT verification 
-│   │   │   ├─
+│   │   │   ├── auth.js            # real JWT verification
 │   │   │   ├── errorHandler.js
+│   │   │   ├── requestLogger.js
 │   │   │   └── role.js
 │   │   ├── models                 
 │   │   │   ├── CoachSubscription.js
 │   │   │   ├── GymSubscription.js
 │   │   │   ├── Interaction.js     # placeholder feature
+│   │   │   ├── Notification.js
 │   │   │   ├── Package.js
 │   │   │   ├── Rating.js
-│   │   │   ├── User.js
-│   │   │   └── index.js
+│   │   │   └── User.js
 │   │   ├── routes
 │   │   │   ├── admin.routes.js
 │   │   │   ├── auth.routes.js
 │   │   │   ├── coach.routes.js
 │   │   │   ├── coachSubscription.routes.js
 │   │   │   ├── gymSubscription.routes.js
-│   │   │   ├── index.js           # mounts all routers onto app
+│   │   │   ├── index.js           # mounts all routers + placeholder /interactions
+│   │   │   ├── notification.routes.js
 │   │   │   ├── package.routes.js
 │   │   │   ├── rating.routes.js
 │   │   │   └── user.routes.js
 │   │   ├── services               # business logic lives here, not in controllers
+│   │   │   ├── auth.service.js
 │   │   │   ├── coachSubscription.service.js   # one-active-coach rule
+│   │   │   ├── notification.service.js
 │   │   │   ├── pricing.service.js             # discount calc
 │   │   │   └── rating.service.js              # avg rating recompute
 │   │   ├── utils
@@ -150,7 +156,7 @@ fitlink/
 │   │   │   │   └── services
 │   │   │   │       ├── api.service.ts          # base HTTP wrapper
 │   │   │   │       └── auth.service.ts
-│   │   │   ├── features
+│   │   │   ├── features                     # feature folders are scaffolding placeholders to be built
 │   │   │   │   ├── admin
 │   │   │   │   │   ├── coach-verification/
 │   │   │   │   │   ├── dashboard/
@@ -288,9 +294,16 @@ One repo, two apps — simplest for a student team to manage branches/PRs on.
 
 ---
 
-## Suggested split (4 people)
-- **Backend A**: 6–12, 29–36 (auth + coach subscription core — hardest logic)
-- **Backend B**: 13–28, 37–46 (profiles, gym sub, packages, ratings, moderation)
-- **Frontend A**: 11–12, 16–18, 26–28, 34–36 (auth UI, profiles, subscription flows)
-- **Frontend B**: 21–22, 41–43, 46, 48–55 (packages UI, reviews UI, dashboards, layout)
-- Everyone: 57–60 near the end.
+## Suggested split (5 people — 1 team)
+- Full ownership document: see `team-tasks.md`.
+
+| Member | Owns |
+|---|---|
+| Habiba | B1 — Auth (register/login, JWT, roles) |
+| Hazem Ayman | B2 — Users & Coach Profiles |
+| Mohamed Ehab | B3 — Packages & Pricing |
+| Abdelrahman Mahmoud | B6 — Ratings & Moderation |
+| Mohamed Elsayed | Every other backend module (B0/B4/B5/B7) + all the app/frontend work and everything not covered by backend-tasks.md |
+| Everyone | Models |
+
+The backend is structured by modules so each owner works in isolation on their module's tasks; frontend/all-UI work and modules B0/B4/B5/B7 plus anything the app needs (notifications, dashboards) belong to Mohamed Elsayed; models are built by the whole team.
