@@ -47,7 +47,7 @@ gymSubscriptionSchema.index({ traineeId: 1, status: 1 });
 gymSubscriptionSchema.index({ handledBy: 1, createdAt: -1 });
 
 const gymSubscriptionModel = mongoose.model(
-  "gymSubscription",
+  "GymSubscription",
   gymSubscriptionSchema,
 );
 export default gymSubscriptionModel;

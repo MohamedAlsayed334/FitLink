@@ -69,7 +69,7 @@ coachSubscriptionSchema.index(
 coachSubscriptionSchema.index({ coachId: 1, status: 1 });
 
 const coachSubscriptionModel = mongoose.model(
-  "coachSubscription",
+  "CoachSubscription",
   coachSubscriptionSchema,
 );
 export default coachSubscriptionModel;
