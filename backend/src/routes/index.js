@@ -10,6 +10,7 @@ import adminRoutes from "./admin.routes.js";
 import employeeRoutes from "./employee.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import chatRoutes from "./chat.routes.js";
+import paymentRoutes from "./payment.routes.js";
 
 const router = Router();
 router.use("/auth", authRoutes);
@@ -23,6 +24,7 @@ router.use("/admin", adminRoutes);
 router.use("/employee", employeeRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/chat", chatRoutes);
+router.use("/payments", paymentRoutes);
 
 // Placeholder interoperability route — scope not finalized yet.
 router.get("/interactions", (req, res) => {
