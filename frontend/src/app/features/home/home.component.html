@@ -1,1 +1,36 @@
-<section>Home — public lander placeholder</section>
+<div class="home-page">
+  <section class="home-hero">
+    <div class="home-hero-copy">
+      <p class="fit-eyebrow">GYM MEMBERSHIPS · ONE-ON-ONE COACHING · VERIFIED RATINGS</p>
+      <h1 class="home-headline">TRAIN WITH A&nbsp;PLAN.</h1>
+      <p class="home-sub">
+        FitLink puts your gym membership and your coach in one place. Pick a plan, track your
+        sessions, and stay accountable.
+      </p>
+      <div class="home-cta">
+        <ng-container *ngIf="user; else guestCta">
+          <a [routerLink]="dashboardLink()" class="fit-btn fit-btn--primary">Go to my dashboard</a>
+          <a routerLink="/coaches" class="fit-btn fit-btn--ghost">Browse coaches</a>
+        </ng-container>
+        <ng-template #guestCta>
+          <a routerLink="/register" class="fit-btn fit-btn--primary">Get your pass</a>
+          <a routerLink="/login" class="fit-btn fit-btn--ghost">I'm a member</a>
+        </ng-template>
+      </div>
+    </div>
+
+    <aside class="home-pass" aria-hidden="true">
+      <div class="mini-pass">
+        <div class="mini-pass-top">
+          <span class="mini-chip" aria-hidden="true"></span>
+          <span class="mini-mono">FITLINK MEMBER</span>
+        </div>
+        <div class="mini-pass-mid">
+          <span class="mini-mono">MEMBER NO. FL-0000</span>
+          <span class="mini-valid">VALID UNLIMITED</span>
+        </div>
+        <span class="mini-btn">CHECK IN</span>
+      </div>
+    </aside>
+  </section>
+</div>

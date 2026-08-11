@@ -1,0 +1,447 @@
+:root {
+  --paper: #F1F3EE;
+  --paper-soft: #E7EBE3;
+  --card: #FFFFFF;
+  --ink: #16211C;
+  --ink-soft: #2A3731;
+  --muted: #67736C;
+  --muted-light: #9AA19B;
+  --line: #D8DDD3;
+  --signal: #FF4D1C;
+  --signal-deep: #E23E14;
+  --on-signal: #FFFFFF;
+  --valid: #237A4D;
+  --valid-soft: #E1F0E6;
+  --danger: #C43A2B;
+  --danger-soft: #FBE7E3;
+  --warn: #B47812;
+  --warn-soft: #F9EFD8;
+  --info: #2E6E8E;
+  --info-soft: #E0EEF4;
+
+  --font-display: 'Anton', 'Arial Narrow', sans-serif;
+  --font-body: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --fs-xs: .72rem;
+  --fs-sm: .8125rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: 2rem;
+  --fs-3xl: 3rem;
+  --fs-hero: clamp(2.75rem, 6vw, 4.5rem);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --shadow-1: 0 1px 2px rgba(22,33,28,.06);
+  --shadow-2: 0 8px 24px rgba(22,33,28,.10);
+  --shadow-3: 0 20px 48px rgba(22,33,28,.16);
+
+  --sidebar-width: 280px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper: #1a1f1c;
+  --paper-soft: #222924;
+  --card: #252b27;
+  --ink: #e8ece9;
+  --ink-soft: #c5ccc7;
+  --muted: #8a918c;
+  --muted-light: #6b736d;
+  --line: #3a403c;
+  --signal: #FF5A24;
+  --signal-deep: #E23E14;
+  --on-signal: #FFFFFF;
+  --valid: #34d565;
+  --valid-soft: rgba(52,213,101,.12);
+  --danger: #f87171;
+  --danger-soft: rgba(248,113,113,.12);
+  --warn: #fbbf24;
+  --warn-soft: rgba(251,191,36,.12);
+  --info: #60a5fa;
+  --info-soft: rgba(96,165,250,.12);
+
+  --shadow-1: 0 1px 2px rgba(0,0,0,.20);
+  --shadow-2: 0 8px 24px rgba(0,0,0,.30);
+  --shadow-3: 0 20px 48px rgba(0,0,0,.40);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 1.05;
+  letter-spacing: .01em;
+}
+
+a {
+  color: var(--signal);
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--on-signal);
+}
+
+[data-theme="dark"] ::selection {
+  background: var(--signal);
+  color: var(--on-signal);
+}
+
+:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+:root {
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.fit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  line-height: 1.2;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color .15s, color .15s, border-color .15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.fit-btn--primary {
+  background: var(--signal);
+  color: var(--on-signal);
+}
+
+.fit-btn--primary:hover:not(:disabled) {
+  background: var(--signal-deep);
+  color: var(--on-signal);
+}
+
+.fit-btn--primary:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.fit-btn--ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.fit-btn--ghost:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.fit-btn--dark {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.fit-btn--dark:hover:not(:disabled) {
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+  color: #fff;
+}
+
+.fit-btn--google {
+  background: #fff;
+  border-color: #747775;
+  color: #3C4043;
+}
+
+.fit-btn--google:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #747775;
+  color: #3C4043;
+}
+
+.fit-btn--google .google-g {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+.fit-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  color: var(--ink);
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.fit-input::placeholder {
+  color: var(--muted-light);
+}
+
+.fit-input:focus {
+  outline: none;
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgba(255, 77, 28, .18);
+}
+
+.fit-input.ng-invalid.ng-touched {
+  border-color: var(--danger);
+}
+
+.fit-label {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.fit-error {
+  color: var(--danger);
+  font-size: var(--fs-xs);
+  margin-top: 4px;
+  display: block;
+}
+
+.fit-alert {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+}
+
+.fit-alert--error {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.fit-alert--success {
+  background: var(--valid-soft);
+  color: var(--valid);
+}
+
+.fit-eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fit-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+}
+
+.fit-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
+}
+
+.fit-divider::before,
+.fit-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.fit-divider span {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Dark-mode polish ──────────────────────────────────────── */
+
+/* Focus ring uses a translucent accent glow that reads on dark bg */
+[data-theme="dark"] :focus-visible {
+  outline-color: var(--signal);
+  outline-offset: 2px;
+}
+
+/* Input focus glow — translucent orange works on both themes */
+[data-theme="dark"] .fit-input:focus {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgba(255, 90, 36, .22);
+}
+
+/* Ghost button adapts to dark surface */
+[data-theme="dark"] .fit-btn--ghost {
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .fit-btn--ghost:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--paper-soft);
+}
+
+/* Dark button stays readable on dark surfaces */
+[data-theme="dark"] .fit-btn--dark {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+[data-theme="dark"] .fit-btn--dark:hover:not(:disabled) {
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+}
+
+/* Google button — keep recognizable white on dark */
+[data-theme="dark"] .fit-btn--google {
+  background: #fff;
+  border-color: #9aa0a6;
+  color: #3C4043;
+}
+
+/* Status pills — dark backgrounds for colored pills */
+[data-theme="dark"] .status-pill {
+  background: var(--valid-soft);
+  color: var(--valid);
+}
+
+/* Toast on dark — card surface, colored left border */
+[data-theme="dark"] .toast {
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* Pass card in auth kiosk — keep card elevated on dark */
+[data-theme="dark"] .pass-card {
+  background: var(--card);
+  border-color: var(--line);
+}
+
+/* Scan line glows brighter in dark */
+[data-theme="dark"] .scan-line {
+  background: linear-gradient(90deg, transparent, rgba(255, 90, 36, .45), transparent);
+}
+
+/* Mini pass card on home — elevated surface */
+[data-theme="dark"] .mini-pass {
+  background: var(--card);
+  border-color: var(--line);
+}
+
+/* Home page strip footer */
+[data-theme="dark"] .home-strip {
+  border-top-color: var(--line);
+}
+
+/* Dashboard bar — elevated surface */
+[data-theme="dark"] .dash-bar {
+  background: var(--card);
+  border-bottom-color: var(--line);
+}
+
+/* Auth kiosk background — use ink which is now light, so swap to dark */
+[data-theme="dark"] .auth-kiosk {
+  background: var(--ink);
+}
+
+/* Kiosk brand text — light on dark */
+[data-theme="dark"] .kiosk-brand {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .kiosk-title {
+  color: var(--ink);
+}
+
+[data-theme="dark"] .kiosk-sub {
+  color: var(--muted-light);
+}
+
+/* Role tabs in register — dark surface */
+[data-theme="dark"] .role-tab {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+[data-theme="dark"] .role-tab:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+[data-theme="dark"] .role-tab.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+/* ============================================================
+   Layout shell — header / sidebar / mobile drawer
+   These styles now live in the app-shell component styles
+   (app-layout, header, sidebar) so nothing here conflicts
+   with the FarmOps-style shell built with FitLink tokens.
+   ============================================================ */
