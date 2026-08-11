@@ -1,0 +1,161 @@
+<main class="dash">
+  <section class="dash-content">
+    <p class="fit-eyebrow dash-eyebrow">CLUB ADMIN</p>
+    <h1 class="dash-heading">PACKAGES.</h1>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <form class="fit-card pkg-form" (ngSubmit)="create()">
+      <div class="pkg-form-head">
+        <p class="fit-eyebrow">MEMBERSHIP OPTIONS</p>
+        <h2 class="pkg-form-title">Create package</h2>
+      </div>
+
+      <div class="pkg-fields">
+        <div class="form-field">
+          <label class="fit-label" for="pkg-type">Type</label>
+          <select id="pkg-type" class="fit-input" name="type" [(ngModel)]="newPkg.type">
+            <option value="gym">Gym</option>
+            <option value="coach">Coach</option>
+          </select>
+        </div>
+
+        <div class="form-field form-field--name">
+          <label class="fit-label" for="pkg-name">Name</label>
+          <input
+            id="pkg-name"
+            class="fit-input"
+            type="text"
+            name="name"
+            [(ngModel)]="newPkg.name"
+            placeholder="e.g. Power Membership" />
+        </div>
+
+        <div class="form-field">
+          <label class="fit-label" for="pkg-duration">Duration</label>
+          <select id="pkg-duration" class="fit-input" name="durationMonths" [(ngModel)]="newPkg.durationMonths">
+            <option [ngValue]="1">1 month</option>
+            <option [ngValue]="3">3 months</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label class="fit-label" for="pkg-price">Base price</label>
+          <input
+            id="pkg-price"
+            class="fit-input"
+            type="number"
+            name="basePrice"
+            [(ngModel)]="newPkg.basePrice"
+            placeholder="0.00"
+            min="0"
+            step="0.01" />
+        </div>
+
+        <div class="form-field">
+          <label class="fit-label" for="pkg-discount">Discount %</label>
+          <input
+            id="pkg-discount"
+            class="fit-input"
+            type="number"
+            name="discountPercent"
+            [(ngModel)]="newPkg.discountPercent"
+            min="0"
+            max="100"
+            placeholder="0" />
+        </div>
+
+        <button
+          class="fit-btn fit-btn--primary pkg-submit"
+          type="submit"
+          [disabled]="!newPkg.name.trim() || newPkg.basePrice <= 0 || saving">
+          {{ saving ? 'Creating…' : 'Create package' }}
+        </button>
+      </div>
+    </form>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="list-head" *ngIf="packages.length">
+        <h2 class="list-heading">All packages</h2>
+        <span class="list-count">{{ packages.length }}</span>
+        <span class="list-count list-count--active">{{ activeCount }} active</span>
+        <span class="list-count">{{ packages.length - activeCount }} deactivated</span>
+      </div>
+
+      <div class="table-wrap fit-card" *ngIf="packages.length">
+        <table class="fit-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Duration</th>
+              <th class="num-cell">Price</th>
+              <th class="num-cell">Discount</th>
+              <th class="num-cell">Final</th>
+              <th>Status</th>
+              <th class="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let pkg of packages" [class.deactivated]="!pkg.isActive">
+              <ng-container *ngIf="pkg._id === editingId; else displayRow">
+                <td class="type-cell">{{ pkg.type }}</td>
+                <td>
+                  <input class="fit-input pkg-edit-input" type="text" name="editName" [(ngModel)]="editModel.name" />
+                </td>
+                <td>{{ pkg.durationMonths }} mo</td>
+                <td class="num-cell">
+                  <input class="fit-input pkg-edit-input" type="number" name="editPrice" [(ngModel)]="editModel.basePrice" min="0" step="0.01" />
+                </td>
+                <td class="num-cell">
+                  <input class="fit-input pkg-edit-input" type="number" name="editDiscount" [(ngModel)]="editModel.discountPercent" min="0" max="100" />
+                </td>
+                <td class="num-cell">{{ pkg.finalPrice | currency }}</td>
+                <td>
+                  <fit-status-pill [label]="pkg.isActive ? 'ACTIVE' : 'DEACTIVATED'" [tone]="pkg.isActive ? 'success' : 'neutral'"></fit-status-pill>
+                </td>
+                <td class="actions-cell">
+                  <div class="row-actions">
+                    <button class="fit-btn fit-btn--primary fit-btn--sm" (click)="saveEdit(pkg)">Save</button>
+                    <button class="fit-btn fit-btn--ghost fit-btn--sm" (click)="cancelEdit()">Cancel</button>
+                  </div>
+                </td>
+              </ng-container>
+              <ng-template #displayRow>
+                <td class="type-cell">{{ pkg.type }}</td>
+                <td class="name-cell">{{ pkg.name }}</td>
+                <td>{{ pkg.durationMonths }} mo</td>
+                <td class="num-cell">{{ pkg.basePrice | currency }}</td>
+                <td class="num-cell">
+                  <ng-container *ngIf="pkg.discountPercent > 0">-{{ pkg.discountPercent }}%</ng-container>
+                  <ng-container *ngIf="pkg.discountPercent <= 0">—</ng-container>
+                </td>
+                <td class="num-cell final-price">{{ pkg.finalPrice | currency }}</td>
+                <td>
+                  <fit-status-pill [label]="pkg.isActive ? 'ACTIVE' : 'DEACTIVATED'" [tone]="pkg.isActive ? 'success' : 'neutral'"></fit-status-pill>
+                </td>
+                <td class="actions-cell">
+                  <ng-container *ngIf="pkg.isActive; else deactivatedActions">
+                    <div class="row-actions">
+                      <button class="fit-btn fit-btn--ghost fit-btn--sm" (click)="startEdit(pkg)">Edit</button>
+                      <button class="fit-btn fit-btn--ghost fit-btn--sm danger-ghost" (click)="deactivate(pkg)">Deactivate</button>
+                    </div>
+                  </ng-container>
+                  <ng-template #deactivatedActions>
+                    <button class="fit-btn fit-btn--ghost fit-btn--sm success-ghost" (click)="activate(pkg)">Activate</button>
+                  </ng-template>
+                </td>
+              </ng-template>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <fit-empty-state *ngIf="!packages.length" icon="□" title="No packages" message="Create your first package above."></fit-empty-state>
+    </ng-container>
+  </section>
+</main>

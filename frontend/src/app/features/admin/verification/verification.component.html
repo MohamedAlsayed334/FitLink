@@ -1,0 +1,66 @@
+<main class="dash">
+  <section class="dash-content">
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div *ngIf="errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+      <p class="fit-eyebrow dash-eyebrow">CLUB ADMIN</p>
+      <h1 class="dash-heading">VERIFY COACHES.</h1>
+
+      <fit-empty-state
+        *ngIf="!coaches.length && !errorMessage"
+        icon="◇"
+        title="No pending verification"
+        message="All coaches are verified."></fit-empty-state>
+
+      <div class="table-wrap fit-card" *ngIf="coaches.length">
+        <table class="fit-table">
+          <thead>
+            <tr>
+              <th>Coach</th>
+              <th>Specializations</th>
+              <th>Experience</th>
+              <th>Certifications</th>
+              <th>Bio</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let coach of coaches">
+              <td>
+                <span class="coach-name">{{ coach.firstName }} {{ coach.lastName }}</span>
+                <span class="coach-meta">{{ coach.email }}</span>
+                <span class="coach-meta" *ngIf="coach.phone">{{ coach.phone }}</span>
+              </td>
+              <td>
+                <div class="chip-wrap" *ngIf="coach.coachProfile?.specialization?.length">
+                  <span class="chip" *ngFor="let spec of coach.coachProfile?.specialization">{{ spec }}</span>
+                </div>
+                <span class="muted" *ngIf="!coach.coachProfile?.specialization?.length">—</span>
+              </td>
+              <td>{{ coach.coachProfile?.experience || '—' }}</td>
+              <td>
+                <div class="cert-list" *ngIf="coach.coachProfile?.certifications?.length">
+                  <div class="cert-chip" *ngFor="let cert of coach.coachProfile?.certifications">
+                    <span class="cert-name">{{ cert.name || '—' }}</span>
+                    <span class="cert-meta">{{ cert.issuer }}</span>
+                    <span class="cert-meta">{{ cert.year }}</span>
+                  </div>
+                </div>
+                <span class="muted" *ngIf="!coach.coachProfile?.certifications?.length">—</span>
+              </td>
+              <td class="bio-cell">{{ truncate(coach.coachProfile?.bio || '', 120) || '—' }}</td>
+              <td>
+                <fit-status-pill label="PENDING" tone="warning"></fit-status-pill>
+                <button class="fit-btn fit-btn--primary" (click)="verifyCoach(coach._id)">Verify</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </section>
+</main>

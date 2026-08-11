@@ -1,0 +1,44 @@
+<main class="dash">
+  <section class="dash-content">
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div *ngIf="errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+      <fit-empty-state *ngIf="!ratings.length" icon="✓" title="All caught up" message="No pending reviews."></fit-empty-state>
+
+      <ng-container *ngIf="ratings.length">
+        <p class="fit-eyebrow dash-eyebrow">CLUB ADMIN</p>
+        <h1 class="dash-heading">REVIEW MODERATION.</h1>
+        <p class="pending-count">{{ total }} pending</p>
+
+        <article class="fit-card review-card" *ngFor="let r of ratings">
+          <fit-star-rating [rating]="r.overallRating"></fit-star-rating>
+
+          <p class="criteria-line">
+            Expertise {{ r.criteria.expertise }}/5 · Communication {{ r.criteria.communication }}/5 · Professionalism {{ r.criteria.professionalism }}/5 · Punctuality {{ r.criteria.punctuality }}/5 · Value {{ r.criteria.valueForMoney }}/5
+          </p>
+
+          <blockquote *ngIf="r.comment">{{ r.comment }}</blockquote>
+
+          <p class="criteria-line">Trainee {{ r.traineeId }} · {{ r.createdAt | date:'mediumDate' }}</p>
+
+          <div class="actions" *ngIf="noteFor !== r._id">
+            <button class="fit-btn fit-btn--primary" (click)="approve(r)">Approve</button>
+            <button class="fit-btn fit-btn--ghost" (click)="openReject(r)">Reject</button>
+          </div>
+
+          <div class="reject-box" *ngIf="noteFor === r._id">
+            <textarea name="rejectNote" [(ngModel)]="rejectNote" placeholder="Why rejecting? (optional)"></textarea>
+            <div class="actions">
+              <button class="fit-btn fit-btn--primary" (click)="confirmReject(r)">Confirm reject</button>
+              <button class="fit-btn fit-btn--ghost" (click)="noteFor = null">Cancel</button>
+            </div>
+          </div>
+        </article>
+      </ng-container>
+    </ng-container>
+  </section>
+</main>
