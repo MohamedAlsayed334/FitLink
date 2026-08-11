@@ -14,3 +14,6 @@ backend-tasks.md
 plan.md
 backend.md
 frontend.md
+.agents/
+skills-lock.json
+frontend-audit.md
