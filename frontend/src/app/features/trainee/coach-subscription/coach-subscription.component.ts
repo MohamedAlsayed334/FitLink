@@ -5,6 +5,7 @@ import { CoachSubscriptionService } from '../../../core/services/coach-subscript
 import { PackageService } from '../../../core/services/package.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { ApiError } from '../../../core/services/api.service';
 import { Package } from '../../../core/models/package.model';
 import { User } from '../../../core/models/user.model';
@@ -23,6 +24,7 @@ export class CoachSubscriptionComponent implements OnInit {
   loading = true;
   errorMessage = '';
   processing = false;
+  paying = false;
   conflictBlocked = false;
 
   private readonly specOptions: Record<string, string> = {};
@@ -33,6 +35,7 @@ export class CoachSubscriptionComponent implements OnInit {
     private packageService: PackageService,
     private toast: ToastService,
     private auth: AuthService,
+    private payment: PaymentService,
     private route: ActivatedRoute,
     private router: Router,
   ) {}
@@ -73,11 +76,30 @@ export class CoachSubscriptionComponent implements OnInit {
 
   backToList(): void { this.selectedCoach = null; this.packages = []; }
 
+  payNow(): void {
+    if (!this.active || this.paying) return;
+    this.paying = true;
+    this.payment.initiate(this.active._id, 'coach').subscribe({
+      next: (res) => {
+        if (!res.checkoutUrl) {
+          this.paying = false;
+          this.toast.error('Unable to start payment. Please try again.');
+          return;
+        }
+        window.location.href = res.checkoutUrl;
+      },
+      error: () => {
+        this.paying = false;
+        this.toast.error('Unable to start payment. Please try again.');
+      },
+    });
+  }
+
   subscribe(pkg: Package): void {
     if (!this.selectedCoach || this.processing) return;
     this.processing = true;
     this.coachSubService.subscribe(this.selectedCoach._id, pkg._id).subscribe({
-      next: () => { this.processing = false; this.toast.success(`Subscribed to ${this.selectedCoach!.firstName}`); this.router.navigate(['/trainee']); },
+      next: () => { this.processing = false; this.toast.success('Subscribed — complete payment to activate'); this.router.navigate(['/trainee']); },
       error: (err: ApiError) => {
         this.processing = false;
         if (err?.status === 409) {

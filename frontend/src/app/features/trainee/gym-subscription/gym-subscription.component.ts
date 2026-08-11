@@ -39,7 +39,7 @@ export class GymSubscriptionComponent implements OnInit {
     if (!this.selected) return;
     this.processing = true;
     this.gymSubService.subscribe(this.selected._id).subscribe({
-      next: () => { this.processing = false; this.toast.success('Plan activated — welcome to FitLink!'); this.router.navigate(['/trainee']); },
+      next: () => { this.processing = false; this.toast.success('Plan created — complete payment to activate'); this.router.navigate(['/trainee']); },
       error: (err: { message?: string }) => { this.processing = false; this.errorMessage = err.message || 'Subscription failed'; },
     });
   }

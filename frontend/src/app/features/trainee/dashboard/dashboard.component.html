@@ -54,7 +54,9 @@
             <h2 class="sub-title">Gym membership</h2>
             <ng-container *ngIf="gymStatus() !== 'none'">
               <fit-status-pill
-                *ngIf="gymStatus() === 'active'" label="ACTIVE" tone="success"></fit-status-pill>
+                *ngIf="currentGym?.paymentStatus === 'pending'" label="PAYMENT PENDING" tone="warning"></fit-status-pill>
+              <fit-status-pill
+                *ngIf="gymStatus() === 'active' && currentGym?.paymentStatus !== 'pending'" label="ACTIVE" tone="success"></fit-status-pill>
               <fit-status-pill
                 *ngIf="gymStatus() === 'expired'" label="EXPIRED" tone="warning"></fit-status-pill>
               <fit-status-pill
@@ -95,6 +97,24 @@
                   </div>
                 </dl>
 
+                <div *ngIf="act.paymentStatus === 'pending'" class="pay-prompt">
+                  <div class="pay-prompt__body">
+                    <p class="pay-prompt__title">Payment pending</p>
+                    <p class="pay-prompt__text">
+                      Your {{ gymPackageName }} plan is awaiting payment of {{ act.finalAmount | currency }}. Complete checkout to activate it.
+                    </p>
+                  </div>
+                  <div class="pay-prompt__actions">
+                    <button
+                      class="fit-btn fit-btn--primary"
+                      [disabled]="payingGym"
+                      (click)="payNowGym()">
+                      <ng-container *ngIf="payingGym; else payGymLabel">Redirecting…</ng-container>
+                      <ng-template #payGymLabel>Pay now</ng-template>
+                    </button>
+                  </div>
+                </div>
+
                 <div class="period">
                   <div class="period-meta">
                     <span class="period-label">Period elapsed</span>
@@ -107,9 +127,10 @@
 
                 <div class="sub-actions">
                   <button
-                    *ngIf="gymStatus() === 'active' || gymStatus() === 'expired'"
+                    *ngIf="(gymStatus() === 'active' || gymStatus() === 'expired') && currentGym?.paymentStatus !== 'pending'"
                     class="fit-btn fit-btn--primary"
-                    (click)="renew()">Renew</button>
+                    (click)="renew()"
+                    [disabled]="renewing">Renew</button>
                   <button
                     *ngIf="gymStatus() === 'active'"
                     class="fit-btn fit-btn--ghost"
@@ -142,6 +163,8 @@
               *ngIf="coachSub"
               [label]="coachSub.status"
               [tone]="coachSub.status === 'active' ? 'success' : coachSub.status === 'expired' ? 'neutral' : 'danger'"></fit-status-pill>
+            <fit-status-pill
+              *ngIf="coachSub?.paymentStatus === 'pending'" label="PAYMENT PENDING" tone="warning"></fit-status-pill>
             <fit-status-pill
               *ngIf="coachSub?.cancellationRequest?.requested" label="CANCEL PENDING" tone="warning"></fit-status-pill>
           </div>
@@ -180,6 +203,24 @@
                   <dd>{{ sub.finalAmount | currency }}</dd>
                 </div>
               </dl>
+
+              <div *ngIf="sub.paymentStatus === 'pending'" class="pay-prompt">
+                <div class="pay-prompt__body">
+                  <p class="pay-prompt__title">Payment pending</p>
+                  <p class="pay-prompt__text">
+                    Your coaching with {{ coachName }} is awaiting payment of {{ sub.finalAmount | currency }}. Complete checkout to activate it.
+                  </p>
+                </div>
+                <div class="pay-prompt__actions">
+                  <button
+                    class="fit-btn fit-btn--primary"
+                    [disabled]="payingCoach"
+                    (click)="payNowCoach()">
+                    <ng-container *ngIf="payingCoach; else payCoachLabel">Redirecting…</ng-container>
+                    <ng-template #payCoachLabel>Pay now</ng-template>
+                  </button>
+                </div>
+              </div>
 
               <div class="period">
                 <div class="period-meta">

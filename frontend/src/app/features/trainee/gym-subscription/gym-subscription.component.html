@@ -27,7 +27,7 @@
             <p class="fit-eyebrow">{{ sel.durationMonths }} MONTH{{ sel.durationMonths > 1 ? 'S' : '' }}</p>
             <h1 class="dash-heading">CONFIRM {{ sel.name }}.</h1>
             <p class="price">{{ sel.finalPrice | currency }}</p>
-            <p class="confirm-note">Mock payment — no real card.</p>
+            <p class="confirm-note">Your plan will be created as pending — you'll complete payment securely at checkout to activate it.</p>
             <div class="sub-actions">
               <button class="fit-btn fit-btn--primary" [disabled]="processing" (click)="confirm()">
                 <ng-container *ngIf="processing; else confirmLabel">Processing…</ng-container>

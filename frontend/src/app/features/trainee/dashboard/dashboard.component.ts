@@ -6,6 +6,7 @@ import { GymSubscriptionService } from '../../../core/services/gym-subscription.
 import { CoachSubscriptionService } from '../../../core/services/coach-subscription.service';
 import { PackageService } from '../../../core/services/package.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { GymSubscription } from '../../../core/models/gym-subscription.model';
 import {
   CoachSubscription,
@@ -28,6 +29,9 @@ export class TraineeDashboardComponent implements OnInit {
   errorMessage = '';
   cancelReason = '';
   showingCancelForm = false;
+  payingGym = false;
+  payingCoach = false;
+  renewing = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -37,6 +41,7 @@ export class TraineeDashboardComponent implements OnInit {
     private coachSubService: CoachSubscriptionService,
     private packageService: PackageService,
     private toast: ToastService,
+    private payment: PaymentService,
   ) {}
 
   ngOnInit(): void {
@@ -209,15 +214,57 @@ export class TraineeDashboardComponent implements OnInit {
 
   /* ── Actions ────────────────────────────────────────────────── */
 
+  payNowGym(): void {
+    const act = this.currentGym;
+    if (!act || this.payingGym) return;
+    this.payingGym = true;
+    this.payment.initiate(act._id, 'gym').subscribe({
+      next: (res) => {
+        if (!res.checkoutUrl) {
+          this.payingGym = false;
+          this.toast.error('Unable to start payment. Please try again.');
+          return;
+        }
+        window.location.href = res.checkoutUrl;
+      },
+      error: () => {
+        this.payingGym = false;
+        this.toast.error('Unable to start payment. Please try again.');
+      },
+    });
+  }
+
+  payNowCoach(): void {
+    if (!this.coachSub || this.payingCoach) return;
+    this.payingCoach = true;
+    this.payment.initiate(this.coachSub._id, 'coach').subscribe({
+      next: (res) => {
+        if (!res.checkoutUrl) {
+          this.payingCoach = false;
+          this.toast.error('Unable to start payment. Please try again.');
+          return;
+        }
+        window.location.href = res.checkoutUrl;
+      },
+      error: () => {
+        this.payingCoach = false;
+        this.toast.error('Unable to start payment. Please try again.');
+      },
+    });
+  }
+
   renew(): void {
     const act = this.currentGym;
-    if (!act) return;
+    if (!act || this.renewing) return;
+    this.renewing = true;
     this.gymSubService.renew(act._id).subscribe({
       next: () => {
-        this.toast.success('Plan renewed');
+        this.renewing = false;
+        this.toast.success('Renewal created — complete payment to activate');
         this.load();
       },
       error: (err: { message?: string }) => {
+        this.renewing = false;
         this.toast.error(err.message || 'Renewal failed');
       },
     });

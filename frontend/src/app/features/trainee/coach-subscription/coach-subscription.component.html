@@ -6,27 +6,53 @@
 
     <div *ngIf="!loading && blocked" class="block-card fit-card">
       <p class="fit-eyebrow">COACH SUBSCRIPTION</p>
-      <h1 class="dash-heading">COACH SUBSCRIPTION.</h1>
-      <ng-container *ngIf="active?.cancellationRequest?.requested === true; else notPending">
-        <div class="fit-alert fit-alert--warn block-alert">
-          Your cancellation request is still pending approval. Once it is approved, you'll be able to subscribe to a new coach.
-        </div>
-        <div class="sub-actions">
-          <a
-            routerLink="/trainee"
-            class="fit-btn fit-btn--primary">View my subscription status</a>
+      <h1 class="dash-heading">
+        <span class="block-heading-line">
+          COACH SUBSCRIPTION.
+          <fit-status-pill *ngIf="active?.paymentStatus === 'pending'" label="PAYMENT PENDING" tone="warning"></fit-status-pill>
+        </span>
+      </h1>
+      <ng-container *ngIf="active?.paymentStatus === 'pending'; else notPendingPayment">
+        <div class="pay-prompt fit-card">
+          <div class="pay-prompt__body">
+            <p class="fit-eyebrow">COMPLETE YOUR PAYMENT</p>
+            <p class="pay-prompt__text">
+              Your coach subscription is awaiting payment of {{ active?.finalAmount | currency }}. Complete the checkout now to activate your coaching.
+            </p>
+          </div>
+          <div class="pay-prompt__actions">
+            <button
+              class="fit-btn fit-btn--primary"
+              [disabled]="paying"
+              (click)="payNow()">
+              <ng-container *ngIf="paying; else payNowLabel">Redirecting…</ng-container>
+              <ng-template #payNowLabel>Pay now</ng-template>
+            </button>
+          </div>
         </div>
       </ng-container>
-      <ng-template #notPending>
-        <div class="fit-alert fit-alert--warn block-alert">
-          You already have an active coach subscription. Cancel it first before subscribing to a new coach.
-        </div>
-        <div class="sub-actions">
-          <a
-            routerLink="/trainee"
-            [queryParams]="{ cancelCoach: '1' }"
-            class="fit-btn fit-btn--primary">Cancel my current subscription</a>
-        </div>
+      <ng-template #notPendingPayment>
+        <ng-container *ngIf="active?.cancellationRequest?.requested === true; else notPending">
+          <div class="fit-alert fit-alert--warn block-alert">
+            Your cancellation request is still pending approval. Once it is approved, you'll be able to subscribe to a new coach.
+          </div>
+          <div class="sub-actions">
+            <a
+              routerLink="/trainee"
+              class="fit-btn fit-btn--primary">View my subscription status</a>
+          </div>
+        </ng-container>
+        <ng-template #notPending>
+          <div class="fit-alert fit-alert--warn block-alert">
+            You already have an active coach subscription. Cancel it first before subscribing to a new coach.
+          </div>
+          <div class="sub-actions">
+            <a
+              routerLink="/trainee"
+              [queryParams]="{ cancelCoach: '1' }"
+              class="fit-btn fit-btn--primary">Cancel my current subscription</a>
+          </div>
+        </ng-template>
       </ng-template>
     </div>
 
