@@ -1,0 +1,56 @@
+<main class="rating-page">
+  <section class="rating-content">
+    <div *ngIf="submitted" class="done-card fit-card">
+      <div class="fit-alert fit-alert--success" role="status">Rating submitted — pending moderation. Thank you!</div>
+      <div class="sub-actions">
+        <a routerLink="/trainee" class="fit-btn fit-btn--primary">Back to dashboard</a>
+      </div>
+    </div>
+
+    <ng-container *ngIf="!submitted">
+      <fit-loading-spinner *ngIf="processing && !submitted" label="Submitting rating"></fit-loading-spinner>
+
+      <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+      <p class="fit-eyebrow">TRAINEE REVIEW</p>
+      <h1 class="dash-heading">RATE YOUR COACH.</h1>
+      <p class="dash-copy">Score each criterion from 1 to 5 stars — all five are required before you can submit.</p>
+
+      <form class="rating-card fit-card" (ngSubmit)="submit()">
+        <div class="criterion-row" *ngFor="let row of rows">
+          <span class="criterion-label">{{ row.label }}</span>
+          <div class="stars">
+            <button
+              type="button"
+              class="star"
+              *ngFor="let n of [1, 2, 3, 4, 5]"
+              [class.active]="criteria[row.key] >= n"
+              [attr.aria-label]="row.label + ' — ' + n + ' of 5 stars'"
+              [attr.aria-pressed]="criteria[row.key] >= n"
+              (click)="setScore(row.key, n)">★</button>
+          </div>
+        </div>
+
+        <p *ngIf="invalid" class="warn-text">All 5 criteria must be scored</p>
+
+        <label class="fit-label" for="ratingComment">Comment (optional)</label>
+        <textarea
+          id="ratingComment"
+          class="fit-input"
+          rows="4"
+          maxlength="1000"
+          [(ngModel)]="comment"
+          name="ratingComment"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Share something about your experience…"></textarea>
+
+        <div class="sub-actions">
+          <button type="submit" class="fit-btn fit-btn--primary" [disabled]="invalid || processing">
+            <ng-container *ngIf="processing; else submitLabel">Submitting…</ng-container>
+            <ng-template #submitLabel>Submit rating</ng-template>
+          </button>
+        </div>
+      </form>
+    </ng-container>
+  </section>
+</main>
