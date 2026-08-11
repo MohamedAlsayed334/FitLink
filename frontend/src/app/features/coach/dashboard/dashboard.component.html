@@ -1,0 +1,144 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="dash-head">
+      <div>
+        <p class="fit-eyebrow">COACHING DESK</p>
+        <h1 class="dash-heading">Welcome, {{ firstName }}.</h1>
+        <p class="dash-copy">Your roster, pending approvals, and profile live here.</p>
+      </div>
+    </div>
+
+    <div *ngIf="coachProfile && coachProfile.isVerified === false" class="fit-alert verify-alert">
+      Your profile is not verified yet — admin verification is pending.
+      <a routerLink="/coach/profile">Complete your profile</a> to speed up review.
+    </div>
+
+    <section *ngIf="coachProfile" class="rating-card fit-card">
+      <div class="rating-left">
+        <p class="fit-eyebrow">YOUR RATING</p>
+        <div class="rating-line">
+          <span class="rating-num">{{ coachProfile.averageRating | number: '1.1-1' }}</span>
+          <span class="stars" [attr.aria-label]="'Rated ' + coachProfile.averageRating + ' out of 5'">
+            <span *ngFor="let star of stars" class="star" [class.filled]="star >= 0.5" [class.half]="star > 0 && star < 1" aria-hidden="true">
+              <ng-container *ngIf="star >= 1">★</ng-container>
+              <ng-container *ngIf="star > 0 && star < 1">⯨</ng-container>
+            </span>
+          </span>
+        </div>
+        <p class="rating-meta">
+          {{ coachProfile.totalReviews }} review{{ coachProfile.totalReviews === 1 ? '' : 's' }}
+        </p>
+      </div>
+      <div class="rating-right">
+        <span *ngIf="coachProfile.isVerified" class="verified-badge">VERIFIED</span>
+        <span *ngIf="!coachProfile.isVerified" class="verified-badge pending">PENDING</span>
+      </div>
+    </section>
+
+    <div class="stat-grid">
+      <article class="stat-tile fit-card">
+        <span class="stat-icon" aria-hidden="true">◉</span>
+        <div class="stat-text">
+          <span class="stat-num">{{ totalTrainees }}</span>
+          <span class="stat-label">Active trainees</span>
+        </div>
+      </article>
+      <button
+        type="button"
+        class="stat-tile stat-tile--action fit-card"
+        [class.has-pending]="pendingCancellations > 0"
+        (click)="onPendingStatClick()"
+      >
+        <span class="stat-icon" aria-hidden="true">✕</span>
+        <div class="stat-text">
+          <span class="stat-num">{{ pendingCancellations }}</span>
+          <span class="stat-label">Pending cancellations</span>
+        </div>
+        <span class="stat-hint">{{ pendingCancellations > 0 ? 'Review →' : 'Roster →' }}</span>
+      </button>
+    </div>
+
+    <section
+      id="pending-cancellations"
+      class="pending-card fit-card"
+      [class.highlight]="highlightPending"
+      *ngIf="pendingRequests.length > 0"
+    >
+      <div class="panel-head">
+        <div>
+          <p class="fit-eyebrow">ACTION REQUIRED</p>
+          <h2 class="panel-title">Pending cancellation requests</h2>
+        </div>
+        <span class="panel-count">{{ pendingRequests.length }}</span>
+      </div>
+      <ul class="request-list">
+        <li class="request-row" *ngFor="let req of pendingRequests">
+          <span *ngIf="traineeAvatar(req)" class="request-avatar">
+            <img [src]="traineeAvatar(req)" [alt]="traineeName(req)" />
+          </span>
+          <div class="request-info">
+            <span class="request-name">{{ traineeName(req) }}</span>
+            <span class="request-reason">{{ req.cancellationRequest?.reason || 'No reason given' }}</span>
+            <span class="request-meta">
+              <span class="request-date" *ngIf="req.cancellationRequest?.requestedAt as reqAt">
+                {{ reqAt | date: 'mediumDate' }}
+              </span>
+              <span *ngIf="packageName(req)">· {{ packageName(req) }}</span>
+            </span>
+          </div>
+          <div class="request-actions">
+            <button
+              type="button"
+              class="fit-btn fit-btn--sm btn-approve"
+              [disabled]="busyId === req._id"
+              (click)="approve(req)"
+            >{{ busyId === req._id ? '…' : 'Approve' }}</button>
+            <button
+              type="button"
+              class="fit-btn fit-btn--sm btn-reject"
+              [disabled]="busyId === req._id"
+              (click)="reject(req)"
+            >{{ busyId === req._id ? '…' : 'Reject' }}</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section *ngIf="!loading && pendingRequests.length === 0" class="pending-empty fit-card">
+      <span class="pending-empty-icon" aria-hidden="true">◇</span>
+      <div>
+        <p class="pending-empty-title">No pending cancellation requests</p>
+        <p class="pending-empty-copy">When a trainee asks to cancel, you can approve or reject it right here.</p>
+      </div>
+    </section>
+
+    <section *ngIf="!loading && activeTrainees.length > 0" class="roster-card fit-card">
+      <div class="panel-head">
+        <div>
+          <p class="fit-eyebrow">ROSTER</p>
+          <h2 class="panel-title">Active trainees</h2>
+        </div>
+        <a class="view-all" routerLink="/coach/trainees">View all</a>
+      </div>
+      <ul class="roster-list">
+        <li class="roster-row" *ngFor="let t of activeTrainees | slice: 0 : 5">
+          <ng-container *ngIf="traineeAvatar(t); else rosterInitial">
+            <span class="roster-avatar">
+              <img [src]="traineeAvatar(t)" [alt]="traineeName(t)" />
+            </span>
+          </ng-container>
+          <ng-template #rosterInitial>
+            <span class="roster-avatar roster-avatar--initial" aria-hidden="true">{{ traineeInitial(t) }}</span>
+          </ng-template>
+          <span class="roster-name">{{ traineeName(t) || ('Trainee ' + traineeId(t)) }}</span>
+          <fit-status-pill *ngIf="t.cancellationRequest?.requested === true" label="Cancel pending" tone="warning"></fit-status-pill>
+        </li>
+      </ul>
+    </section>
+
+    <div class="cta-row">
+      <a class="fit-btn fit-btn--primary" routerLink="/coach/trainees">Review trainees</a>
+      <a class="fit-btn fit-btn--ghost" routerLink="/coach/profile">Edit profile</a>
+    </div>
+  </section>
+</main>
