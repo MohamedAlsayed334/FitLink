@@ -1,0 +1,80 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="page-head">
+      <div>
+        <p class="fit-eyebrow">ROSTER</p>
+        <h1 class="page-title">Your trainees.</h1>
+        <p class="page-copy">Review active subscriptions and act on cancellation requests.</p>
+      </div>
+      <a class="fit-btn fit-btn--ghost" routerLink="/coach">Back to dashboard</a>
+    </div>
+
+    <fit-loading-spinner *ngIf="loading" label="Loading trainees"></fit-loading-spinner>
+
+    <fit-empty-state
+      *ngIf="!loading && trainees.length === 0"
+      icon="◇"
+      title="No trainees yet"
+      message="When members subscribe to your coaching, they will appear here."
+    ></fit-empty-state>
+
+    <div *ngIf="!loading && trainees.length > 0" class="table-card fit-card">
+      <table class="trainees-table">
+        <thead>
+          <tr>
+            <th>Trainee</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th>Cancellation</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sub of trainees" [class.pending]="sub.cancellationRequest?.requested === true">
+            <td>
+              <div class="trainee-cell">
+                <span *ngIf="traineeName(sub); else idOnly" class="trainee-name">{{ traineeName(sub) }}</span>
+                <ng-template #idOnly>
+                  <span class="trainee-id">Trainee {{ traineeId(sub) }}</span>
+                </ng-template>
+                <span *ngIf="traineeName(sub)" class="trainee-id">{{ traineeId(sub) }}</span>
+              </div>
+            </td>
+            <td class="date-cell">{{ sub.startDate | date: 'mediumDate' }}</td>
+            <td class="date-cell">{{ sub.endDate | date: 'mediumDate' }}</td>
+            <td>
+              <fit-status-pill [label]="sub.status" [tone]="toneFor(sub.status)"></fit-status-pill>
+            </td>
+            <td class="amount-cell">{{ sub.finalAmount | currency }}</td>
+            <td>
+              <div *ngIf="sub.cancellationRequest?.requested === true" class="cancel-cell">
+                <p class="cancel-reason">{{ sub.cancellationRequest?.reason || 'No reason given' }}</p>
+                <div class="cancel-actions">
+                  <button
+                    class="fit-btn fit-btn--primary fit-btn--sm"
+                    [disabled]="busyId === sub._id"
+                    (click)="approve(sub)"
+                  >Approve</button>
+                  <button
+                    class="fit-btn fit-btn--ghost fit-btn--sm"
+                    [disabled]="busyId === sub._id"
+                    (click)="reject(sub)"
+                  >Reject</button>
+                </div>
+              </div>
+              <span *ngIf="sub.cancellationRequest?.requested !== true" class="no-request">—</span>
+            </td>
+            <td>
+              <a
+                class="fit-btn fit-btn--ghost fit-btn--sm"
+                [routerLink]="['/chat']"
+                [queryParams]="{ with: traineeId(sub) }">Message</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
