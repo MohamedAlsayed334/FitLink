@@ -1,0 +1,251 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.coaches-page {
+  min-height: 100vh;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: .02em;
+  text-transform: none;
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.brand-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--signal);
+  border-radius: 1px;
+  margin: 0 2px;
+  align-self: center;
+}
+
+.coaches-container {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: clamp(var(--space-5), 5vw, 56px) clamp(var(--space-4), 4vw, 48px);
+}
+
+.coaches-head {
+  margin-bottom: var(--space-5);
+}
+
+.page-heading {
+  margin: var(--space-2) 0 0;
+  font-size: clamp(var(--fs-2xl), 4vw, var(--fs-3xl));
+  color: var(--ink);
+}
+
+.page-sub {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-lg);
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-4) var(--space-6);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.filter-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filter-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filter-chip {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+
+.filter-chip:hover {
+  border-color: var(--muted);
+  color: var(--ink);
+}
+
+.filter-chip.active {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--on-signal);
+}
+
+.fit-select {
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-md);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.coach-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .coach-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .coach-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.coach-card {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: transform .15s, box-shadow .15s;
+}
+
+.coach-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3);
+}
+
+.coach-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.coach-avatar {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  color: var(--signal);
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coach-avatar.has-avatar {
+  background: transparent;
+}
+
+.coach-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coach-id {
+  min-width: 0;
+}
+
+.coach-name {
+  margin: 0 0 var(--space-1);
+  font-size: var(--fs-lg);
+  color: var(--ink);
+}
+
+.coach-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.coach-reviews {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.coach-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.badge-accepting {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid var(--signal);
+  color: var(--signal);
+  white-space: nowrap;
+}
+
+.spec-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.spec-chip {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
+.coach-cta {
+  margin-top: auto;
+}
+
+.load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
+}
