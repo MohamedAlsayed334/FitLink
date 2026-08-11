@@ -348,6 +348,12 @@
   margin-top: var(--space-2);
 }
 
+.fit-btn--muted {
+  opacity: .65;
+  cursor: not-allowed;
+  filter: saturate(.4);
+}
+
 /* ── Cancel form ─────────────────────────────────────────── */
 
 .cancel-form {
@@ -452,6 +458,14 @@
 
 .timeline-note {
   font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.sub-history__note {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: .06em;
   color: var(--muted);
 }
 

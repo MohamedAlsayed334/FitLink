@@ -7,7 +7,10 @@ import { CoachSubscriptionService } from '../../../core/services/coach-subscript
 import { PackageService } from '../../../core/services/package.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { PaymentService } from '../../../core/services/payment.service';
-import { GymSubscription } from '../../../core/models/gym-subscription.model';
+import {
+  GymSubscription,
+  SubscriptionHistoryEntry,
+} from '../../../core/models/gym-subscription.model';
 import {
   CoachSubscription,
   PopulatedCoach,
@@ -63,10 +66,12 @@ export class TraineeDashboardComponent implements OnInit {
         this.gymSubs = res.gymSubs;
         this.coachSub = res.coachSub;
         this.loading = false;
+        this.renewing = false;
       },
       error: (err: { message?: string }) => {
         this.errorMessage = err.message || 'Failed to load dashboard';
         this.loading = false;
+        this.renewing = false;
       },
     });
   }
@@ -146,6 +151,27 @@ export class TraineeDashboardComponent implements OnInit {
   get gymProgress(): number {
     const act = this.currentGym;
     return this.periodProgress(act?.startDate, act?.endDate);
+  }
+
+  /** Most recent ~8 activity events, newest first. */
+  get gymHistory(): SubscriptionHistoryEntry[] {
+    return (this.currentGym?.history ?? []).slice(-8).reverse();
+  }
+
+  /** Total number of activity events for the "showing last N" note. */
+  get gymHistoryTotal(): number {
+    return this.currentGym?.history?.length ?? 0;
+  }
+
+  /** Humanizes a raw history action string (unknown actions pass through). */
+  historyLabel(action: string): string {
+    const labels: Record<string, string> = {
+      renewed: 'Renewed',
+      cancel_requested: 'Cancellation requested',
+      payment_confirmed: 'Payment confirmed',
+      created: 'Plan created',
+    };
+    return labels[action] ?? action;
   }
 
   get coachProgress(): number {
@@ -256,10 +282,13 @@ export class TraineeDashboardComponent implements OnInit {
   renew(): void {
     const act = this.currentGym;
     if (!act || this.renewing) return;
+    if (act.paymentStatus === 'pending') {
+      this.toast.error('Complete the outstanding payment first');
+      return;
+    }
     this.renewing = true;
     this.gymSubService.renew(act._id).subscribe({
       next: () => {
-        this.renewing = false;
         this.toast.success('Renewal created — complete payment to activate');
         this.load();
       },

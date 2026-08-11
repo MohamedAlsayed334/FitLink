@@ -127,29 +127,36 @@
 
                 <div class="sub-actions">
                   <button
-                    *ngIf="(gymStatus() === 'active' || gymStatus() === 'expired') && currentGym?.paymentStatus !== 'pending'"
+                    *ngIf="currentGym?.paymentStatus === 'pending' || renewing"
+                    class="fit-btn fit-btn--primary fit-btn--muted"
+                    disabled>Renewal pending — complete payment</button>
+                  <button
+                    *ngIf="(gymStatus() === 'active' || gymStatus() === 'expired') && currentGym?.paymentStatus !== 'pending' && !renewing"
                     class="fit-btn fit-btn--primary"
                     (click)="renew()"
                     [disabled]="renewing">Renew</button>
                   <button
-                    *ngIf="gymStatus() === 'active'"
+                    *ngIf="gymStatus() === 'active' && currentGym?.paymentStatus !== 'pending'"
                     class="fit-btn fit-btn--ghost"
                     (click)="cancelGym()">Cancel plan</button>
                 </div>
               </div>
 
-              <div class="sub-history" *ngIf="currentGym?.history?.length">
+              <div class="sub-history" *ngIf="gymHistory.length">
                 <h3 class="sub-history__title">Activity history</h3>
                 <ol class="timeline">
-                  <li class="timeline-item" *ngFor="let h of currentGym.history">
+                  <li class="timeline-item" *ngFor="let h of gymHistory">
                     <span class="timeline-dot" aria-hidden="true"></span>
                     <div class="timeline-content">
-                      <span class="timeline-action">{{ h.action }}</span>
+                      <span class="timeline-action">{{ historyLabel(h?.action ?? '') }}</span>
                       <span class="timeline-date">{{ h.date | date: 'mediumDate' }}</span>
-                      <span class="timeline-note" *ngIf="h.note">{{ h.note }}</span>
+                      <span class="timeline-note" *ngIf="h?.note">{{ h.note }}</span>
                     </div>
                   </li>
                 </ol>
+                <p class="sub-history__note" *ngIf="gymHistoryTotal > gymHistory.length">
+                  Showing last {{ gymHistory.length }} of {{ gymHistoryTotal }} events
+                </p>
               </div>
             </ng-container>
           </ng-template>
