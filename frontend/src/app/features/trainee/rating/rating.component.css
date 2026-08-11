@@ -1,0 +1,123 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.rating-page {
+  min-height: 100vh;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: .02em;
+  text-transform: none;
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.brand-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--signal);
+  border-radius: 1px;
+  margin: 0 2px;
+  align-self: center;
+}
+
+.rating-content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(var(--space-6), 6vw, 64px) clamp(var(--space-4), 4vw, 48px);
+}
+
+.dash-heading {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--fs-2xl);
+  color: var(--ink);
+}
+
+.dash-copy {
+  margin: 0 0 var(--space-5);
+  font-size: var(--fs-lg);
+  color: var(--muted);
+  max-width: 56ch;
+  line-height: 1.7;
+}
+
+.rating-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.criterion-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.criterion-row:last-of-type {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.criterion-label {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.stars .star {
+  background: transparent;
+  border: none;
+  font-size: var(--fs-xl);
+  cursor: pointer;
+  color: var(--line);
+  padding: 2px;
+  line-height: 1;
+  transition: color .15s, transform .15s;
+}
+
+.star:hover {
+  transform: scale(1.1);
+}
+
+.star.active {
+  color: var(--signal);
+}
+
+.warn-text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--danger);
+}
+
+.done-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.sub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}

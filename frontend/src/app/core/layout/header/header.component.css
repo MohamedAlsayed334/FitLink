@@ -1,0 +1,117 @@
+:host {
+  display: block;
+}
+
+.fit-header {
+  height: 64px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0 clamp(1rem, 3vw, 1.5rem);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.fit-header__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.fit-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fit-menu-btn:hover {
+  background: var(--card);
+  border-color: var(--signal);
+  color: var(--signal);
+}
+
+.fit-menu-btn:active {
+  transform: scale(0.95);
+}
+
+.fit-header__title-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fit-header__title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fit-header__subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fit-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fit-header__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  transition: color 0.15s ease;
+}
+
+.fit-header__link:hover,
+.fit-header__link.is-active {
+  color: var(--signal);
+}
+
+.fit-header__cta {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 480px) {
+  .fit-header__subtitle {
+    display: none;
+  }
+
+  .fit-header__cta {
+    padding: 0 12px;
+  }
+}

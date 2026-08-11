@@ -1,0 +1,16 @@
+<div class="toast-container" aria-live="polite">
+  <div
+    *ngFor="let toast of toasts"
+    class="toast"
+    [class.toast-error]="toast.type === 'error'"
+    [class.toast-success]="toast.type === 'success'"
+  >
+    <span class="toast-message">{{ toast.message }}</span>
+    <button
+      type="button"
+      class="toast-close"
+      aria-label="Dismiss notification"
+      (click)="dismissToast(toast.id)"
+    >&times;</button>
+  </div>
+</div>

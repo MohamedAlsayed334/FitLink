@@ -1,0 +1,78 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="cancel-head">
+      <div class="dash-titles">
+        <p class="fit-eyebrow dash-eyebrow">CLUB ADMIN</p>
+        <h1 class="dash-heading">CANCELLATIONS.</h1>
+      </div>
+      <button
+        class="fit-btn fit-btn--ghost fit-btn--sm"
+        type="button"
+        [disabled]="loading"
+        (click)="loadCancellations()">Refresh</button>
+    </div>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <fit-empty-state
+      *ngIf="!loading && !errorMessage && !pending.length"
+      icon="◇"
+      title="No pending cancellations"
+      message="Trainee cancellation requests will appear here."></fit-empty-state>
+
+    <div class="table-wrap fit-card" *ngIf="!loading && !errorMessage && pending.length">
+      <table class="fit-table">
+        <thead>
+          <tr>
+            <th>Trainee</th>
+            <th>Coach</th>
+            <th>Package</th>
+            <th>Reason</th>
+            <th>Requested</th>
+            <th>Expires</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sub of pending">
+            <td>
+              <span class="person-name">{{ sub.trainee.firstName }} {{ sub.trainee.lastName }}</span>
+              <span class="person-meta">{{ sub.trainee.email }}</span>
+            </td>
+            <td>
+              <span class="person-name">{{ sub.coach.firstName }} {{ sub.coach.lastName }}</span>
+            </td>
+            <td>
+              <span class="person-name">{{ sub.package.name }}</span>
+              <span class="person-meta">{{ sub.package.durationMonths }} mo</span>
+            </td>
+            <td class="reason-cell">{{ sub.reason || '—' }}</td>
+            <td>{{ sub.requestedAt | date:'mediumDate' }}</td>
+            <td>{{ sub.endDate | date:'mediumDate' }}</td>
+            <td>{{ sub.finalAmount | currency }}</td>
+            <td>
+              <div class="cancel-actions">
+                <fit-status-pill label="Pending" tone="warning"></fit-status-pill>
+                <button
+                  class="fit-btn fit-btn--primary fit-btn--sm"
+                  type="button"
+                  [disabled]="actionLoading === sub.id"
+                  (click)="approveCancel(sub)">{{ actionLoading === sub.id ? '…' : 'Approve' }}</button>
+                <button
+                  class="fit-btn fit-btn--ghost fit-btn--sm"
+                  type="button"
+                  [disabled]="actionLoading === sub.id"
+                  (click)="rejectCancel(sub)">Reject</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

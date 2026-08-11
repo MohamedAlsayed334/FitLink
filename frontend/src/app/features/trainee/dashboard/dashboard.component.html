@@ -1,0 +1,291 @@
+<main class="trainee-dash">
+  <section class="dash-content">
+    <fit-loading-spinner *ngIf="loading" label="Loading dashboard"></fit-loading-spinner>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+    <ng-container *ngIf="!loading && !errorMessage">
+      <!-- ── Hero ─────────────────────────────────────────── -->
+      <section class="hero">
+        <p class="fit-eyebrow hero-eyebrow">MEMBER CLUB</p>
+        <h1 class="hero-title">Good to see you, {{ firstName }}.</h1>
+        <p class="hero-sub">{{ heroSubline }}</p>
+      </section>
+
+      <!-- ── KPI stat grid ────────────────────────────────── -->
+      <div class="stat-grid">
+        <div class="stat-tile fit-card">
+          <span class="stat-icon" aria-hidden="true">🏋</span>
+          <span class="stat-label">Membership</span>
+          <ng-container [ngSwitch]="gymStatus()">
+            <span class="stat-value stat-value--ok" *ngSwitchCase="'active'">Active</span>
+            <span class="stat-value stat-value--warn" *ngSwitchCase="'pending'">Pending</span>
+            <span class="stat-value stat-value--warn" *ngSwitchCase="'expired'">Expired</span>
+            <span class="stat-value stat-value--bad" *ngSwitchCase="'cancelled'">Cancelled</span>
+            <span class="stat-value" *ngSwitchDefault>No plan</span>
+          </ng-container>
+        </div>
+
+        <div class="stat-tile fit-card">
+          <span class="stat-icon" aria-hidden="true">⏳</span>
+          <span class="stat-label">Gym days left</span>
+          <span class="stat-value" *ngIf="gymStatus() !== 'none'">{{ gymDaysRemaining }}<small class="stat-unit">days</small></span>
+          <span class="stat-value stat-value--muted" *ngIf="gymStatus() === 'none'">—</span>
+        </div>
+
+        <div class="stat-tile fit-card">
+          <span class="stat-icon" aria-hidden="true">🎯</span>
+          <span class="stat-label">Coach</span>
+          <span class="stat-value stat-value--truncate" [class.stat-value--muted]="!coachName" [title]="coachName">{{ coachName || 'No coach' }}</span>
+        </div>
+
+        <div class="stat-tile fit-card">
+          <span class="stat-icon" aria-hidden="true">📅</span>
+          <span class="stat-label">Next renewal</span>
+          <span class="stat-value" *ngIf="gymRenewalDate">{{ gymRenewalDate | date: 'mediumDate' }}</span>
+          <span class="stat-value stat-value--muted" *ngIf="!gymRenewalDate">—</span>
+        </div>
+      </div>
+
+      <!-- ── Subscription cards ───────────────────────────── -->
+      <div class="cards-grid">
+        <!-- Gym membership -->
+        <section class="fit-card sub-card">
+          <div class="sub-head">
+            <h2 class="sub-title">Gym membership</h2>
+            <ng-container *ngIf="gymStatus() !== 'none'">
+              <fit-status-pill
+                *ngIf="currentGym?.paymentStatus === 'pending'" label="PAYMENT PENDING" tone="warning"></fit-status-pill>
+              <fit-status-pill
+                *ngIf="gymStatus() === 'active' && currentGym?.paymentStatus !== 'pending'" label="ACTIVE" tone="success"></fit-status-pill>
+              <fit-status-pill
+                *ngIf="gymStatus() === 'expired'" label="EXPIRED" tone="warning"></fit-status-pill>
+              <fit-status-pill
+                *ngIf="gymStatus() === 'cancelled'" label="CANCELLED" tone="danger"></fit-status-pill>
+            </ng-container>
+          </div>
+
+          <ng-container *ngIf="gymStatus() === 'none'; else gymPlan">
+            <fit-empty-state
+              icon="♤"
+              title="No gym plan yet"
+              message="Pick a plan and start training today."></fit-empty-state>
+            <div class="sub-actions">
+              <a routerLink="/trainee/gym" class="fit-btn fit-btn--primary">Choose a gym plan</a>
+            </div>
+          </ng-container>
+
+          <ng-template #gymPlan>
+            <ng-container *ngIf="currentGym as act">
+              <div class="sub-body">
+                <p class="sub-plan">{{ gymPackageName }}</p>
+                <dl class="sub-facts">
+                  <div class="sub-fact">
+                    <dt>Start</dt>
+                    <dd>{{ act.startDate | date: 'mediumDate' }}</dd>
+                  </div>
+                  <div class="sub-fact">
+                    <dt>Renewal</dt>
+                    <dd>{{ act.endDate | date: 'mediumDate' }}</dd>
+                  </div>
+                  <div class="sub-fact">
+                    <dt>Price</dt>
+                    <dd>{{ act.finalAmount | currency }}</dd>
+                  </div>
+                  <div class="sub-fact">
+                    <dt>Payment</dt>
+                    <dd class="sub-fact__val" [class.sub-fact__val--warn]="act.paymentStatus === 'pending'">{{ act.paymentStatus === 'paid' ? 'Paid' : 'Pending' }}</dd>
+                  </div>
+                </dl>
+
+                <div *ngIf="act.paymentStatus === 'pending'" class="pay-prompt">
+                  <div class="pay-prompt__body">
+                    <p class="pay-prompt__title">Payment pending</p>
+                    <p class="pay-prompt__text">
+                      Your {{ gymPackageName }} plan is awaiting payment of {{ act.finalAmount | currency }}. Complete checkout to activate it.
+                    </p>
+                  </div>
+                  <div class="pay-prompt__actions">
+                    <button
+                      class="fit-btn fit-btn--primary"
+                      [disabled]="payingGym"
+                      (click)="payNowGym()">
+                      <ng-container *ngIf="payingGym; else payGymLabel">Redirecting…</ng-container>
+                      <ng-template #payGymLabel>Pay now</ng-template>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="period">
+                  <div class="period-meta">
+                    <span class="period-label">Period elapsed</span>
+                    <span class="period-count">{{ gymProgress }}%</span>
+                  </div>
+                  <div class="period-track" aria-hidden="true">
+                    <div class="period-fill" [style.width.%]="gymProgress"></div>
+                  </div>
+                </div>
+
+                <div class="sub-actions">
+                  <button
+                    *ngIf="currentGym?.paymentStatus === 'pending' || renewing"
+                    class="fit-btn fit-btn--primary fit-btn--muted"
+                    disabled>Renewal pending — complete payment</button>
+                  <button
+                    *ngIf="canRenewGym && !renewing"
+                    class="fit-btn fit-btn--primary"
+                    (click)="renew()"
+                    [disabled]="renewing">Renew</button>
+                  <button
+                    *ngIf="gymStatus() === 'active' && currentGym?.paymentStatus !== 'pending'"
+                    class="fit-btn fit-btn--ghost"
+                    (click)="cancelGym()">Cancel plan</button>
+                </div>
+              </div>
+
+              <div class="sub-history" *ngIf="gymHistory.length">
+                <h3 class="sub-history__title">Activity history</h3>
+                <ol class="timeline">
+                  <li class="timeline-item" *ngFor="let h of gymHistory">
+                    <span class="timeline-dot" aria-hidden="true"></span>
+                    <div class="timeline-content">
+                      <span class="timeline-action">{{ historyLabel(h?.action ?? '') }}</span>
+                      <span class="timeline-date">{{ h.date | date: 'mediumDate' }}</span>
+                      <span class="timeline-note" *ngIf="h?.note">{{ h.note }}</span>
+                    </div>
+                  </li>
+                </ol>
+                <p class="sub-history__note" *ngIf="gymHistoryTotal > gymHistory.length">
+                  Showing last {{ gymHistory.length }} of {{ gymHistoryTotal }} events
+                </p>
+              </div>
+            </ng-container>
+          </ng-template>
+        </section>
+
+        <!-- Coach subscription -->
+        <section class="fit-card sub-card">
+          <div class="sub-head">
+            <h2 class="sub-title">Coach subscription</h2>
+            <fit-status-pill
+              *ngIf="coachSub"
+              [label]="coachSub.status"
+              [tone]="coachSub.status === 'active' ? 'success' : coachSub.status === 'expired' ? 'neutral' : 'danger'"></fit-status-pill>
+            <fit-status-pill
+              *ngIf="coachSub?.paymentStatus === 'pending'" label="PAYMENT PENDING" tone="warning"></fit-status-pill>
+            <fit-status-pill
+              *ngIf="coachSub?.cancellationRequest?.requested" label="CANCEL PENDING" tone="warning"></fit-status-pill>
+          </div>
+
+          <ng-container *ngIf="!coachSub; else coachPlan">
+            <fit-empty-state
+              icon="♞"
+              title="No coach yet"
+              message="Browse verified coaches and subscribe to personalised coaching."></fit-empty-state>
+            <div class="sub-actions">
+              <a routerLink="/trainee/coach" class="fit-btn fit-btn--primary">Browse coaches</a>
+            </div>
+          </ng-container>
+
+          <ng-template #coachPlan>
+            <ng-container *ngIf="coachSub as sub">
+              <div class="coach-ident">
+                <div class="coach-avatar" aria-hidden="true">{{ coachInitials }}</div>
+                <div class="coach-meta">
+                  <p class="sub-plan">{{ coachName }}</p>
+                  <p class="coach-tagline">{{ coachPackageName }}</p>
+                </div>
+              </div>
+
+              <dl class="sub-facts">
+                <div class="sub-fact">
+                  <dt>Start</dt>
+                  <dd>{{ sub.startDate | date: 'mediumDate' }}</dd>
+                </div>
+                <div class="sub-fact">
+                  <dt>Ends in</dt>
+                  <dd>{{ coachDaysRemaining }} days · {{ sub.endDate | date: 'mediumDate' }}</dd>
+                </div>
+                <div class="sub-fact">
+                  <dt>Price</dt>
+                  <dd>{{ sub.finalAmount | currency }}</dd>
+                </div>
+              </dl>
+
+              <div *ngIf="sub.paymentStatus === 'pending'" class="pay-prompt">
+                <div class="pay-prompt__body">
+                  <p class="pay-prompt__title">Payment pending</p>
+                  <p class="pay-prompt__text">
+                    Your coaching with {{ coachName }} is awaiting payment of {{ sub.finalAmount | currency }}. Complete checkout to activate it.
+                  </p>
+                </div>
+                <div class="pay-prompt__actions">
+                  <button
+                    class="fit-btn fit-btn--primary"
+                    [disabled]="payingCoach"
+                    (click)="payNowCoach()">
+                    <ng-container *ngIf="payingCoach; else payCoachLabel">Redirecting…</ng-container>
+                    <ng-template #payCoachLabel>Pay now</ng-template>
+                  </button>
+                </div>
+              </div>
+
+              <div class="period">
+                <div class="period-meta">
+                  <span class="period-label">Period elapsed</span>
+                  <span class="period-count">{{ coachProgress }}%</span>
+                </div>
+                <div class="period-track" aria-hidden="true">
+                  <div class="period-fill period-fill--alt" [style.width.%]="coachProgress"></div>
+                </div>
+              </div>
+
+              <div class="sub-actions">
+                <ng-container *ngIf="coachActive; else coachLockedNote">
+                  <button
+                    class="fit-btn fit-btn--primary"
+                    (click)="messageCoach()"
+                    [disabled]="!coachIdForChat">Message coach</button>
+                  <a [routerLink]="['/trainee/rate', sub._id]" class="fit-btn fit-btn--ghost">Rate coach</a>
+                </ng-container>
+                <ng-template #coachLockedNote>
+                  <p class="coach-locked-note">Message and rating unlock once your payment is confirmed.</p>
+                </ng-template>
+                <button class="fit-btn fit-btn--ghost" (click)="toggleCancelForm()">Cancel subscription</button>
+              </div>
+
+              <div *ngIf="showingCancelForm" class="cancel-form">
+                <label class="fit-label" for="cancelReason">Reason for cancelling (optional)</label>
+                <textarea
+                  id="cancelReason"
+                  class="fit-input"
+                  rows="3"
+                  [(ngModel)]="cancelReason"
+                  placeholder="Tell us why you're leaving…"></textarea>
+                <p class="cancel-note">Your coach or admin must approve the cancellation before you can subscribe to a new coach.</p>
+                <div class="sub-actions">
+                  <button class="fit-btn fit-btn--primary" (click)="requestCoachCancel()">Request cancellation</button>
+                  <button class="fit-btn fit-btn--ghost" (click)="toggleCancelForm()">Back</button>
+                </div>
+              </div>
+
+              <div class="sub-history" *ngIf="sub.history?.length">
+                <h3 class="sub-history__title">Activity history</h3>
+                <ol class="timeline">
+                  <li class="timeline-item" *ngFor="let h of sub.history">
+                    <span class="timeline-dot" aria-hidden="true"></span>
+                    <div class="timeline-content">
+                      <span class="timeline-action">{{ h.action }}</span>
+                      <span class="timeline-date">{{ h.date | date: 'mediumDate' }}</span>
+                      <span class="timeline-note" *ngIf="h.note">{{ h.note }}</span>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </ng-container>
+          </ng-template>
+        </section>
+      </div>
+    </ng-container>
+  </section>
+</main>

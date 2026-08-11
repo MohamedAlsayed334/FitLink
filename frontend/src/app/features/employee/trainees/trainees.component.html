@@ -1,0 +1,66 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="trainees-head">
+      <div class="dash-titles">
+        <p class="fit-eyebrow dash-eyebrow">MEMBERS</p>
+        <h1 class="dash-heading">TRAINEES.</h1>
+      </div>
+      <button
+        class="fit-btn fit-btn--ghost fit-btn--sm"
+        type="button"
+        [disabled]="loading"
+        (click)="load()">Refresh</button>
+    </div>
+
+    <div class="search-bar">
+      <input
+        id="trainees-search"
+        class="fit-input"
+        type="search"
+        name="search"
+        [(ngModel)]="search"
+        (keyup.enter)="onSearch()"
+        placeholder="Search by name, email or phone…" />
+      <button class="fit-btn fit-btn--primary fit-btn--sm" type="button" (click)="onSearch()">Search</button>
+    </div>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <fit-empty-state
+      *ngIf="!loading && !errorMessage && !trainees.length"
+      icon="👥"
+      title="No trainees found"
+      message="Try a different search or register new members at the front desk."></fit-empty-state>
+
+    <div class="table-wrap fit-card" *ngIf="!loading && !errorMessage && trainees.length">
+      <table class="fit-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of trainees" class="row-click" (click)="openProfile(t)">
+            <td>
+              <span class="person-name">{{ t.firstName }} {{ t.lastName }}</span>
+            </td>
+            <td>{{ t.email }}</td>
+            <td>{{ t.phone || '—' }}</td>
+            <td>
+              <fit-status-pill [label]="t.isActive ? 'ACTIVE' : 'INACTIVE'" [tone]="t.isActive ? 'success' : 'neutral'"></fit-status-pill>
+            </td>
+            <td>{{ t.createdAt | date: 'mediumDate' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

@@ -7,6 +7,8 @@ import {
   renewSubscription,
   cancelSubscription,
   getMySubscriptions,
+  listGymSubscriptions,
+  purchaseSubscriptionForTrainee,
 } from "../controllers/gymSubscription.controller.js";
 
 const router = Router();
@@ -17,6 +19,13 @@ router.post(
   protect,
   requireRole("admin", "employee"),
   registerWalkInTrainee,
+);
+router.get("/", protect, requireRole("admin", "employee"), listGymSubscriptions);
+router.post(
+  "/:traineeId/purchase",
+  protect,
+  requireRole("admin", "employee"),
+  purchaseSubscriptionForTrainee,
 );
 router.get("/mine", protect, requireRole("trainee"), getMySubscriptions);
 router.put("/:id/renew", protect, renewSubscription);

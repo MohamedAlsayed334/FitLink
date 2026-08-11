@@ -22,5 +22,5 @@ packageSchema.virtual("finalPrice").get(function () {
 packageSchema.set("toJSON", { virtuals: true });
 packageSchema.set("toObject", { virtuals: true });
 
-const packageModel = mongoose.model("package", packageSchema);
+const packageModel = mongoose.model("Package", packageSchema);
 export default packageModel;

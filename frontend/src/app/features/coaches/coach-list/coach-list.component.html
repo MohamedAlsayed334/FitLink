@@ -1,0 +1,89 @@
+<main class="coaches-page">
+  <div class="coaches-container">
+    <div class="coaches-head">
+      <p class="fit-eyebrow">VERIFIED COACHES</p>
+      <h1 class="page-heading">FIND YOUR COACH.</h1>
+      <p class="page-sub">
+        Browse verified coaches by specialization, then check real trainee ratings before you commit.
+      </p>
+    </div>
+
+    <div class="filters fit-card" role="group" aria-label="Filter coaches">
+      <div class="filter-block">
+        <span class="filter-label">Specialization</span>
+        <div class="filter-chips">
+          <button
+            *ngFor="let spec of specializations"
+            type="button"
+            class="filter-chip"
+            [class.active]="spec === selectedSpecialization"
+            (click)="selectSpecialization(spec)">
+            {{ spec }}
+          </button>
+        </div>
+      </div>
+      <div class="filter-block">
+        <span class="filter-label">Min rating</span>
+        <select class="fit-select" [(ngModel)]="minRating" (ngModelChange)="onFilterChange()">
+          <option [ngValue]="null">Any rating</option>
+          <option [ngValue]="4">4+</option>
+          <option [ngValue]="4.5">4.5+</option>
+        </select>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <fit-loading-spinner *ngIf="loading" label="Loading coaches"></fit-loading-spinner>
+
+    <ng-container *ngIf="!loading">
+      <fit-empty-state
+        *ngIf="coaches.length === 0"
+        icon="◇"
+        title="No coaches found"
+        message="Try a different specialization or rating filter.">
+      </fit-empty-state>
+
+      <div class="coach-grid" *ngIf="coaches.length > 0">
+        <article class="coach-card fit-card" *ngFor="let coach of coaches">
+          <div class="coach-top">
+            <div class="coach-avatar" [class.has-avatar]="coach.avatar">
+              <ng-container *ngIf="coach.avatar; else avatarInitial">
+                <img [src]="coach.avatar" [alt]="coach.firstName" />
+              </ng-container>
+              <ng-template #avatarInitial>{{ coach.firstName.charAt(0) }}</ng-template>
+            </div>
+            <div class="coach-id">
+              <h3 class="coach-name">{{ coach.firstName }} {{ coach.lastName }}</h3>
+              <div class="coach-rating">
+                <fit-star-rating [rating]="coach.coachProfile?.averageRating || 0"></fit-star-rating>
+                <span class="coach-reviews">({{ coach.coachProfile?.totalReviews || 0 }})</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="coach-badges">
+            <fit-status-pill
+              *ngIf="coach.coachProfile?.isVerified"
+              label="Verified"
+              tone="success"></fit-status-pill>
+            <span *ngIf="coach.coachProfile?.isAcceptingClients" class="badge-accepting">Accepting clients</span>
+          </div>
+
+          <div class="spec-chips" *ngIf="coach.coachProfile?.specialization?.length">
+            <span class="spec-chip" *ngFor="let spec of coach.coachProfile!.specialization">{{ spec }}</span>
+          </div>
+
+          <a [routerLink]="['/coaches', coach._id]" class="fit-btn fit-btn--primary coach-cta">View profile</a>
+        </article>
+      </div>
+
+      <div class="load-more" *ngIf="coaches.length > 0">
+        <button class="fit-btn fit-btn--ghost" [disabled]="loadingMore || !hasMore" (click)="loadMore()">
+          <ng-container *ngIf="loadingMore; else loadMoreLabel">Loading…</ng-container>
+          <ng-template #loadMoreLabel>Load more coaches</ng-template>
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</main>

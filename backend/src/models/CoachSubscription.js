@@ -29,8 +29,8 @@ const coachSubscriptionSchema = new Schema(
     endDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["active", "expired", "cancelled"],
-      default: "active",
+      enum: ["pending", "active", "expired", "cancelled"],
+      default: "pending",
     },
 
     finalAmount: { type: Number, required: true, min: 0 },
@@ -69,7 +69,7 @@ coachSubscriptionSchema.index(
 coachSubscriptionSchema.index({ coachId: 1, status: 1 });
 
 const coachSubscriptionModel = mongoose.model(
-  "coachSubscription",
+  "CoachSubscription",
   coachSubscriptionSchema,
 );
 export default coachSubscriptionModel;

@@ -1,0 +1,126 @@
+<main class="coach-detail-page">
+  <div class="coach-detail-container">
+    <a routerLink="/coaches" class="back-link">← Back to coaches</a>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <ng-container *ngIf="coach; else notFound">
+      <section class="coach-header fit-card">
+        <div class="coach-avatar" [class.has-avatar]="coach.avatar">
+          <ng-container *ngIf="coach.avatar; else avatarInitial">
+            <img [src]="coach.avatar" [alt]="coach.firstName" />
+          </ng-container>
+          <ng-template #avatarInitial>{{ coach.firstName.charAt(0) }}</ng-template>
+        </div>
+        <div class="coach-summary">
+          <p class="fit-eyebrow">Coach</p>
+          <h1 class="coach-name">{{ coach.firstName }} {{ coach.lastName }}</h1>
+          <div class="coach-rating">
+            <fit-star-rating [rating]="averageRating"></fit-star-rating>
+            <span class="coach-reviews">{{ averageRating }} <span class="dot">·</span> {{ totalReviews }} reviews</span>
+          </div>
+          <div class="coach-badges">
+            <fit-status-pill
+              *ngIf="coach.coachProfile?.isVerified"
+              label="Verified"
+              tone="success"></fit-status-pill>
+            <span *ngIf="coach.coachProfile?.isAcceptingClients" class="badge-accepting">Accepting clients</span>
+          </div>
+          <div class="spec-chips" *ngIf="coach.coachProfile?.specialization?.length">
+            <span class="spec-chip" *ngFor="let spec of coach.coachProfile!.specialization">{{ spec }}</span>
+          </div>
+          <a class="fit-btn fit-btn--ghost" routerLink="/chat" [queryParams]="{ with: coachId }" *ngIf="isTrainee">Message coach</a>
+        </div>
+      </section>
+
+      <div class="detail-grid">
+        <section class="detail-card fit-card">
+          <h2 class="section-title">About</h2>
+          <p class="bio">{{ coach.coachProfile?.bio || 'No bio provided yet.' }}</p>
+        </section>
+        <section class="detail-card fit-card">
+          <h2 class="section-title">Experience</h2>
+          <p class="exp">{{ coach.coachProfile?.experience || 0 }} years coaching</p>
+        </section>
+      </div>
+
+      <section class="detail-card fit-card cert-card">
+        <h2 class="section-title">Certifications</h2>
+        <ng-container *ngIf="coach.coachProfile?.certifications?.length; else noCerts">
+          <ul class="cert-list">
+            <li *ngFor="let cert of coach.coachProfile!.certifications">
+              <strong class="cert-name">{{ cert.name }}</strong>
+              <span class="cert-detail">{{ cert.issuer }} · {{ cert.year }}</span>
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #noCerts>
+          <p class="muted-empty">No certifications listed.</p>
+        </ng-template>
+      </section>
+
+      <section class="detail-section">
+        <h2 class="section-title">Reviews</h2>
+        <ng-container *ngIf="reviews.length; else noReviews">
+          <div class="review-list">
+            <article class="review fit-card" *ngFor="let review of reviews">
+              <div class="review-head">
+                <span class="review-author">{{ review.authorName || 'Trainee' }}</span>
+                <fit-star-rating [rating]="review.overallRating"></fit-star-rating>
+                <time class="review-date">{{ review.createdAt | date: 'mediumDate' }}</time>
+              </div>
+              <p *ngIf="review.comment" class="review-comment">{{ review.comment }}</p>
+              <p *ngIf="!review.comment" class="review-empty">No written comment.</p>
+            </article>
+          </div>
+        </ng-container>
+        <ng-template #noReviews>
+          <p class="muted-empty">No reviews yet.</p>
+        </ng-template>
+      </section>
+
+      <section class="detail-section">
+        <h2 class="section-title">Coaching packages</h2>
+        <ng-container *ngIf="packages.length; else noPackages">
+          <div class="package-grid">
+            <div class="package-card fit-card" *ngFor="let p of packages">
+              <p class="package-name">{{ p.name }}</p>
+              <p class="package-duration">{{ p.durationMonths }} month{{ p.durationMonths > 1 ? 's' : '' }}</p>
+              <div class="package-price">
+                <span *ngIf="p.discountPercent > 0" class="package-base">{{ p.basePrice | currency }}</span>
+                <span class="package-final">{{ p.finalPrice | currency }}</span>
+              </div>
+              <a
+                *ngIf="user; else subscribeGuest"
+                class="fit-btn fit-btn--primary package-cta"
+                routerLink="/trainee/coach"
+                [queryParams]="{ coachId: coachId }">
+                Subscribe now
+              </a>
+              <ng-template #subscribeGuest>
+                <a
+                  class="fit-btn fit-btn--primary package-cta"
+                  [routerLink]="['/login']"
+                  [queryParams]="{ returnUrl: '/coaches/' + coachId }">
+                  Subscribe now
+                </a>
+              </ng-template>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #noPackages>
+          <p class="muted-empty">No coaching packages available.</p>
+        </ng-template>
+      </section>
+    </ng-container>
+
+    <ng-template #notFound>
+      <div class="missing">
+        <fit-empty-state
+          icon="◇"
+          title="Coach not found"
+          message="This coach may no longer be available."></fit-empty-state>
+      </div>
+    </ng-template>
+  </div>
+</main>

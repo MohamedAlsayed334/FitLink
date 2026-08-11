@@ -1,3 +1,8 @@
+// Node.js v18 polyfill: mongodb driver v7+ and bson use `crypto` as a global
+// (Web Crypto API). Node v19+ exposes this automatically; v18 needs this line.
+import { webcrypto } from "crypto";
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
+
 import mongoose from "mongoose";
 import app from "./src/app.js";
 import { connectDB } from "./src/config/db.js";

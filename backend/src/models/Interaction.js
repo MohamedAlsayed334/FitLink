@@ -22,5 +22,5 @@ const interactionSchema = new Schema(
   { timestamps: true },
 );
 
-const interactionModel = mongoose.model("interaction", interactionSchema);
+const interactionModel = mongoose.model("Interaction", interactionSchema);
 export default interactionModel;

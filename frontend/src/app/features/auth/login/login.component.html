@@ -1,0 +1,96 @@
+<div class="auth-kiosk">
+  <div class="kiosk-brand">
+    <p class="kiosk-eyebrow">FRONT DESK / MEMBER GATE</p>
+    <h1 class="kiosk-title">
+      <span>READY.</span>
+      <span>CHECK IN.</span>
+    </h1>
+    <p class="kiosk-sub">
+      Your FitLink pass gets you into every session — gym floor and one-on-one coaching.
+    </p>
+  </div>
+
+  <div class="kiosk-panel">
+    <div class="pass-card" [class.entered]="entered">
+      <div class="scan-line" aria-hidden="true"></div>
+
+      <div class="pass-top">
+        <div class="pass-brand">
+          <span class="pass-chip" aria-hidden="true"></span>
+          <span class="pass-mono">FITLINK MEMBER</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <fit-theme-toggle></fit-theme-toggle>
+          <span class="pass-mono">NO. FL-0000</span>
+        </div>
+      </div>
+      <div class="pass-valid-strip">VALID UNLIMITED · ALL LOCATIONS</div>
+
+      <div class="pass-body">
+        <p class="fit-eyebrow">MEMBER ACCESS</p>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="form-field">
+            <label class="fit-label" for="email">Member email</label>
+            <input
+              class="fit-input"
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+            <small class="fit-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')">
+              Email is required
+            </small>
+            <small class="fit-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')">
+              Please enter a valid email
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="password">Password</label>
+            <div class="pass-field">
+              <input
+                class="fit-input"
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                placeholder="Your password"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="pass-toggle"
+                [attr.aria-pressed]="showPassword"
+                aria-label="Toggle password visibility"
+                (click)="showPassword = !showPassword"
+              >
+                {{ showPassword ? 'HIDE' : 'SHOW' }}
+              </button>
+            </div>
+            <small class="fit-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">
+              Password is required
+            </small>
+          </div>
+
+          <div class="fit-alert fit-alert--error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+
+          <button type="submit" class="fit-btn fit-btn--primary pass-submit" [disabled]="pending">
+            {{ pending ? 'Checking…' : 'Check in' }}
+          </button>
+        </form>
+
+        <div class="fit-divider" *ngIf="googleEnabled"><span>OR CONTINUE WITH</span></div>
+
+        <div class="pass-google" *ngIf="googleEnabled">
+          <div #googleBtn class="google-btn-ref"></div>
+        </div>
+      </div>
+
+      <div class="pass-footer">
+        NO PASS YET? <a routerLink="/register">CLAIM ONE</a> <span aria-hidden="true">→</span>
+      </div>
+    </div>
+  </div>
+</div>

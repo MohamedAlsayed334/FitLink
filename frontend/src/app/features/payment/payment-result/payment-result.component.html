@@ -1,0 +1,32 @@
+<main class="result-page">
+  <section class="result-card fit-card">
+    <p class="fit-eyebrow">PAYMENT RESULT</p>
+
+    <div class="result-icon" [ngClass]="'result-icon--' + state" aria-hidden="true">
+      <ng-container [ngSwitch]="state">
+        <span *ngSwitchCase="'success'">&#10003;</span>
+        <span *ngSwitchCase="'failure'">&#10007;</span>
+        <span *ngSwitchDefault>&hellip;</span>
+      </ng-container>
+    </div>
+
+    <h1 class="result-title">{{ title }}</h1>
+    <p class="result-message">{{ message }}</p>
+
+    <dl class="result-facts" *ngIf="transactionId || orderId">
+      <div class="result-fact" *ngIf="transactionId">
+        <dt>Transaction</dt>
+        <dd>{{ transactionId }}</dd>
+      </div>
+      <div class="result-fact" *ngIf="orderId">
+        <dt>Order</dt>
+        <dd>{{ orderId }}</dd>
+      </div>
+    </dl>
+
+    <div class="result-actions">
+      <a routerLink="/trainee" class="fit-btn fit-btn--primary">Back to dashboard</a>
+      <a routerLink="/trainee/coach" class="fit-btn fit-btn--ghost">Browse coach plans</a>
+    </div>
+  </section>
+</main>

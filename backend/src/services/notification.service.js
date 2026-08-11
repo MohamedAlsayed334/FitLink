@@ -46,16 +46,27 @@ export async function notifyMany(recipientIds, payload) {
 
 export async function notifyAllAdmins(payload) {
   const admins = await User.find({ role: "admin", isActive: true }).select("_id");
-  const count = await notifyMany(
-    admins.map((a) => a._id),
-    payload,
+  const ids = (admins || []).map((a) => a._id).filter(Boolean);
+  if (ids.length === 0) return 0;
+
+  const created = await Notification.insertMany(
+    ids.map((recipientId) => ({
+      recipientId,
+      type: payload.type,
+      title: payload.title,
+      body: payload.body,
+      data: payload.data || {},
+    })),
   );
-  try {
-    emitToAdmins("notification:new", payload);
-  } catch (error) {
-    console.error("Failed to emit notification to admins:", error.message);
+
+  for (const doc of created) {
+    try {
+      emitToAdmins("notification:new", doc);
+    } catch (error) {
+      console.error("Failed to emit notification to admins:", error.message);
+    }
   }
-  return count;
+  return created.length;
 }
 
 export default { notify, notifyMany, notifyAllAdmins };

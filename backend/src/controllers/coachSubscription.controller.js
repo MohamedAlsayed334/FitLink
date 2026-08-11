@@ -85,9 +85,10 @@ export const createSubscription = asyncHandler(async (req, res) => {
     packageId: pkg._id,
     startDate,
     endDate,
-    status: "active",
+    // Trainee self-service: no access until the Paymob webhook confirms payment
+    status: "pending",
     finalAmount,
-    paymentStatus: "paid",
+    paymentStatus: "pending",
     history: [{ action: "created", date: new Date() }],
   });
 
@@ -98,7 +99,7 @@ export const createSubscription = asyncHandler(async (req, res) => {
     recipientId: req.user.id,
     type: "subscription_created",
     title: "Coach subscription created",
-    body: `Your coach subscription with ${coach.firstName} ${coach.lastName} is active.`,
+    body: `Your coach subscription with ${coach.firstName} ${coach.lastName} is pending until payment is confirmed. Complete payment to activate it.`,
     data: { subscriptionId: sub._id, coachId: coach._id },
   });
 
@@ -119,8 +120,10 @@ export const requestCancellation = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  if (sub.status !== "active") {
-    const err = new Error("Only active subscriptions can request cancellation");
+  if (sub.status !== "active" && sub.status !== "pending") {
+    const err = new Error(
+      "Only active or pending subscriptions can request cancellation",
+    );
     err.statusCode = 409;
     throw err;
   }
@@ -180,7 +183,10 @@ export const processCancellation = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  if (sub.status !== "active" || sub.cancellationRequest?.requested !== true) {
+  if (
+    !["active", "pending"].includes(sub.status) ||
+    sub.cancellationRequest?.requested !== true
+  ) {
     const err = new Error("No pending cancellation request");
     err.statusCode = 409;
     throw err;
@@ -227,7 +233,10 @@ export const rejectCancellation = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  if (sub.status !== "active" || sub.cancellationRequest?.requested !== true) {
+  if (
+    !["active", "pending"].includes(sub.status) ||
+    sub.cancellationRequest?.requested !== true
+  ) {
     const err = new Error("No pending cancellation request");
     err.statusCode = 409;
     throw err;
@@ -253,14 +262,18 @@ export const rejectCancellation = asyncHandler(async (req, res) => {
 });
 
 export const getMyActiveSubscription = asyncHandler(async (req, res) => {
+  // Pending (unpaid) subs are returned too so the frontend can show a
+  // "Pay now" prompt; only "active" subs represent real access.
   let sub = await CoachSubscription.findOne({
     traineeId: req.user.id,
-    status: "active",
+    status: { $in: ["active", "pending"] },
   })
     .populate("coachId", "firstName lastName avatar coachProfile")
     .populate("packageId");
 
-  if (sub && new Date(sub.endDate) < new Date()) {
+  // Auto-expire on read ONLY for active subs past their end date. A pending
+  // sub is just unpaid (no access granted), so it is returned as-is.
+  if (sub && sub.status === "active" && new Date(sub.endDate) < new Date()) {
     await expireCoachSub(sub);
     return res.status(200).json({ success: true, data: null });
   }
@@ -275,6 +288,7 @@ export const getCoachTrainees = asyncHandler(async (req, res) => {
   const subs = await CoachSubscription.find({
     coachId: req.user.id,
     status: "active",
+    paymentStatus: "paid",
   }).populate("traineeId", "firstName lastName avatar phone email");
 
   res.status(200).json({ success: true, data: subs });

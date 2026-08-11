@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'fit-root',
   template: `
-    <main class="stage0-shell">
-      <h1>FitLink</h1>
-      <p>Stage 0 — Angular 16 shell ready. Feature work starts in Stage 1.</p>
-      <router-outlet></router-outlet>
-    </main>
+    <router-outlet></router-outlet>
+    <fit-toast></fit-toast>
   `,
-  styleUrls: ['./app.component.scss']
 })
-export class AppComponent {}
+export class AppComponent {
+  constructor(_theme: ThemeService) {}
+}

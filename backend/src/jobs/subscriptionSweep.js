@@ -9,34 +9,42 @@ const DAY_MS = 86400000;
 async function sendReminders(subs, now) {
   for (const sub of subs) {
     const daysLeft = (sub.endDate - now) / DAY_MS;
-    let changed = false;
+    const Model = sub.constructor;
 
-    if (daysLeft <= 7 && !sub.expiryRemindersSent.includes(7)) {
-      sub.expiryRemindersSent.push(7);
-      changed = true;
+    // Reminder thresholds, each set atomically so a concurrent renew (which
+    // resets expiryRemindersSent to []) cannot be clobbered by a stale save.
+    const thresholds = [
+      { at: 7, type: "expiry_reminder", title: "Subscription expiring soon" },
+      { at: 1, type: "expiry_reminder_final", title: "Subscription expires tomorrow" },
+    ];
+
+    for (const t of thresholds) {
+      if (daysLeft > t.at || sub.expiryRemindersSent.includes(t.at)) continue;
+
+      const result = await Model.findOneAndUpdate(
+        {
+          _id: sub._id,
+          status: "active",
+          endDate: { $lte: new Date(now.getTime() + t.at * DAY_MS) },
+          expiryRemindersSent: { $nin: [t.at] },
+        },
+        { $addToSet: { expiryRemindersSent: t.at } },
+        { new: true },
+      );
+      if (!result) continue;
+
+      const body =
+        t.at === 7
+          ? `Your subscription expires on ${result.endDate.toDateString()}. Renew now to avoid losing access.`
+          : `Your subscription expires tomorrow (${result.endDate.toDateString()}). This is the final reminder.`;
+
       await notify({
-        recipientId: sub.traineeId,
-        type: "expiry_reminder",
-        title: "Subscription expiring soon",
-        body: `Your subscription expires on ${sub.endDate.toDateString()}. Renew now to avoid losing access.`,
-        data: { subscriptionId: sub._id },
+        recipientId: result.traineeId,
+        type: t.type,
+        title: t.title,
+        body,
+        data: { subscriptionId: result._id },
       });
-    }
-
-    if (daysLeft <= 1 && !sub.expiryRemindersSent.includes(1)) {
-      sub.expiryRemindersSent.push(1);
-      changed = true;
-      await notify({
-        recipientId: sub.traineeId,
-        type: "expiry_reminder_final",
-        title: "Subscription expires tomorrow",
-        body: `Your subscription expires tomorrow (${sub.endDate.toDateString()}). This is the final reminder.`,
-        data: { subscriptionId: sub._id },
-      });
-    }
-
-    if (changed) {
-      await sub.save();
     }
   }
 }
@@ -49,20 +57,27 @@ export async function runSweep() {
     endDate: { $lte: now },
   });
   for (const sub of expiredGym) {
-    sub.status = "expired";
-    sub.history.push({
-      action: "expired",
-      date: new Date(),
-      note: "Auto-expired",
-    });
-    await sub.save();
+    // Atomic, conditional expiry: the filter re-checks status/endDate so a
+    // renew that commits between our find and this update is NOT clobbered
+    // back to "expired". Only notify when we actually won the claim.
+    const result = await GymSubscription.findOneAndUpdate(
+      { _id: sub._id, status: "active", endDate: { $lte: now } },
+      {
+        $set: { status: "expired" },
+        $push: {
+          history: { action: "expired", date: new Date(), note: "Auto-expired" },
+        },
+      },
+      { new: true },
+    );
+    if (!result) continue;
 
     await notify({
-      recipientId: sub.traineeId,
+      recipientId: result.traineeId,
       type: "subscription_expired",
       title: "Gym subscription expired",
       body: "Your gym subscription has expired. Renew it to keep training.",
-      data: { subscriptionId: sub._id, kind: "gym" },
+      data: { subscriptionId: result._id, kind: "gym" },
     });
   }
 
@@ -71,26 +86,30 @@ export async function runSweep() {
     endDate: { $lte: now },
   });
   for (const sub of expiredCoach) {
-    sub.status = "expired";
-    sub.history.push({
-      action: "expired",
-      date: new Date(),
-      note: "Auto-expired",
-    });
-    await sub.save();
+    const result = await CoachSubscription.findOneAndUpdate(
+      { _id: sub._id, status: "active", endDate: { $lte: now } },
+      {
+        $set: { status: "expired" },
+        $push: {
+          history: { action: "expired", date: new Date(), note: "Auto-expired" },
+        },
+      },
+      { new: true },
+    );
+    if (!result) continue;
 
-    const trainee = await User.findById(sub.traineeId);
-    if (trainee && String(trainee.activeCoachSubscriptionId) === String(sub._id)) {
+    const trainee = await User.findById(result.traineeId);
+    if (trainee && String(trainee.activeCoachSubscriptionId) === String(result._id)) {
       trainee.activeCoachSubscriptionId = null;
       await trainee.save();
     }
 
     await notify({
-      recipientId: sub.traineeId,
+      recipientId: result.traineeId,
       type: "subscription_expired",
       title: "Coach subscription expired",
       body: "Your coach subscription has expired. Contact your coach to renew.",
-      data: { subscriptionId: sub._id, kind: "coach" },
+      data: { subscriptionId: result._id, kind: "coach" },
     });
   }
 

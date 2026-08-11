@@ -1,0 +1,245 @@
+<div class="auth-kiosk">
+  <div class="kiosk-brand">
+    <p class="kiosk-eyebrow">FRONT DESK / NEW MEMBER</p>
+    <h1 class="kiosk-title">
+      <span>CLAIM</span>
+      <span>YOUR PASS.</span>
+    </h1>
+    <p class="kiosk-sub">
+      One password, one pass. Your membership card gets you onto the gym floor
+      and books you with any coach on FitLink.
+    </p>
+  </div>
+
+  <div class="kiosk-panel">
+    <div class="pass-card" [class.entered]="entered">
+      <div class="scan-line" aria-hidden="true"></div>
+
+      <div class="pass-top">
+        <div class="pass-brand">
+          <span class="pass-chip" aria-hidden="true"></span>
+          <span class="pass-mono">FITLINK MEMBER</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <fit-theme-toggle></fit-theme-toggle>
+          <span class="pass-mono">NO. FL-0000</span>
+        </div>
+      </div>
+      <div class="pass-valid-strip">MEMBER REGISTRATION · NEW CARD</div>
+
+      <div class="pass-body">
+        <p class="fit-eyebrow">CHOOSE YOUR PASS TYPE</p>
+
+        <div class="role-tabs" role="group" aria-label="Pass type">
+          <button
+            type="button"
+            class="role-tab"
+            [class.active]="form.get('role')?.value === 'trainee'"
+            [attr.aria-pressed]="form.get('role')?.value === 'trainee'"
+            (click)="setRole('trainee')"
+          >
+            TRAINEE
+          </button>
+          <button
+            type="button"
+            class="role-tab"
+            [class.active]="form.get('role')?.value === 'coach'"
+            [attr.aria-pressed]="form.get('role')?.value === 'coach'"
+            (click)="setRole('coach')"
+          >
+            COACH
+          </button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="name-grid">
+            <div class="form-field">
+              <label class="fit-label" for="firstName">First name</label>
+              <input
+                class="fit-input"
+                id="firstName"
+                type="text"
+                formControlName="firstName"
+                placeholder="Ahmed"
+                autocomplete="given-name"
+              />
+              <small class="fit-error" *ngIf="form.get('firstName')?.touched && form.get('firstName')?.hasError('required')">
+                First name is required
+              </small>
+            </div>
+
+            <div class="form-field">
+              <label class="fit-label" for="lastName">Last name</label>
+              <input
+                class="fit-input"
+                id="lastName"
+                type="text"
+                formControlName="lastName"
+                placeholder="Mohamed"
+                autocomplete="family-name"
+              />
+              <small class="fit-error" *ngIf="form.get('lastName')?.touched && form.get('lastName')?.hasError('required')">
+                Last name is required
+              </small>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="email">Email</label>
+            <input
+              class="fit-input"
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+            <small class="fit-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')">
+              Email is required
+            </small>
+            <small class="fit-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('pattern')">
+              Please enter a valid email
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="phone">Phone <span class="optional">(optional)</span></label>
+            <input
+              class="fit-input"
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              placeholder="+20 1xx xxx xxxx"
+              autocomplete="tel"
+            />
+          </div>
+
+          <div class="coach-details" *ngIf="form.get('role')?.value === 'coach'">
+            <p class="coach-eyebrow">COACH DETAILS</p>
+
+            <div class="form-field">
+              <label class="fit-label" for="specialization">Specializations</label>
+              <input
+                class="fit-input"
+                id="specialization"
+                type="text"
+                formControlName="specialization"
+                placeholder="e.g. Strength, Conditioning, Nutrition"
+                autocomplete="off"
+              />
+              <small class="coach-hint">Comma-separated list of your specializations.</small>
+            </div>
+
+            <div class="form-field">
+              <label class="fit-label" for="experience">Years of experience</label>
+              <input
+                class="fit-input"
+                id="experience"
+                type="number"
+                min="0"
+                formControlName="experience"
+              />
+              <small class="fit-error" *ngIf="form.get('experience')?.touched && form.get('experience')?.hasError('min')">
+                Experience cannot be negative.
+              </small>
+            </div>
+
+            <div class="form-field">
+              <label class="fit-label" for="bio">Bio <span class="optional">(optional)</span></label>
+              <textarea
+                class="fit-input"
+                id="bio"
+                rows="4"
+                formControlName="bio"
+                placeholder="Tell trainees about your coaching approach…"
+              ></textarea>
+              <small class="fit-error" *ngIf="form.get('bio')?.touched && form.get('bio')?.hasError('maxlength')">
+                Bio must be 1000 characters or fewer.
+              </small>
+            </div>
+
+            <div class="form-field">
+              <div class="section-head">
+                <span class="fit-label section-label">Certifications</span>
+                <button type="button" class="fit-btn fit-btn--ghost fit-btn--sm" (click)="addCertification()">
+                  + Add certification
+                </button>
+              </div>
+              <div class="cert-list" formArrayName="certifications">
+                <div class="cert-row" *ngFor="let cert of certifications.controls; index as i" [formGroupName]="i">
+                  <div class="field">
+                    <label class="fit-label" [attr.for]="'cert-name-' + i">Name</label>
+                    <input [id]="'cert-name-' + i" class="fit-input" formControlName="name" placeholder="e.g. NSCA-CPT" />
+                  </div>
+                  <div class="field">
+                    <label class="fit-label" [attr.for]="'cert-issuer-' + i">Issuer</label>
+                    <input [id]="'cert-issuer-' + i" class="fit-input" formControlName="issuer" placeholder="e.g. NSCA" />
+                  </div>
+                  <div class="field cert-year">
+                    <label class="fit-label" [attr.for]="'cert-year-' + i">Year</label>
+                    <input [id]="'cert-year-' + i" class="fit-input" type="number" formControlName="year" />
+                  </div>
+                  <button type="button" class="remove-btn" aria-label="Remove certification" (click)="removeCertification(i)">
+                    ×
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="password">Password</label>
+            <input
+              class="fit-input"
+              id="password"
+              type="password"
+              formControlName="password"
+              placeholder="At least 6 characters"
+              autocomplete="new-password"
+            />
+            <small class="fit-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">
+              Password is required
+            </small>
+            <small class="fit-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')">
+              Password must be at least 6 characters
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="confirmPassword">Confirm password</label>
+            <input
+              class="fit-input"
+              id="confirmPassword"
+              type="password"
+              formControlName="confirmPassword"
+              placeholder="Repeat your password"
+              autocomplete="new-password"
+            />
+            <small class="fit-error" *ngIf="form.get('confirmPassword')?.touched && form.get('confirmPassword')?.hasError('required')">
+              Please confirm your password
+            </small>
+            <small class="fit-error" *ngIf="form.get('confirmPassword')?.touched && form.get('confirmPassword')?.hasError('passwordMismatch')">
+              Passwords do not match
+            </small>
+          </div>
+
+          <div class="fit-alert fit-alert--error" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+
+          <button type="submit" class="fit-btn fit-btn--primary pass-submit" [disabled]="pending">
+            {{ pending ? 'Claiming…' : 'Claim my pass' }}
+          </button>
+        </form>
+
+        <div class="fit-divider" *ngIf="googleEnabled"><span>OR CONTINUE WITH</span></div>
+
+        <div class="pass-google" *ngIf="googleEnabled">
+          <div #googleBtn class="google-btn-ref"></div>
+        </div>
+      </div>
+
+      <div class="pass-footer">
+        ALREADY A MEMBER? <a routerLink="/login">CHECK IN</a> <span aria-hidden="true">→</span>
+      </div>
+    </div>
+  </div>
+</div>

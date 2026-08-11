@@ -22,8 +22,8 @@ const gymSubscriptionSchema = new Schema(
     endDate: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["active", "expired", "cancelled"],
-      default: "active",
+      enum: ["pending", "active", "expired", "cancelled"],
+      default: "pending",
     },
 
     finalAmount: { type: Number, required: true, min: 0 },
@@ -43,11 +43,18 @@ const gymSubscriptionSchema = new Schema(
 
 gymSubscriptionSchema.index({ traineeId: 1, status: 1 });
 
+// Defense-in-depth: DB rejects a second "active" row for the same trainee,
+// even if the service-layer check is bypassed or racy.
+gymSubscriptionSchema.index(
+  { traineeId: 1 },
+  { unique: true, partialFilterExpression: { status: "active" } },
+);
+
 // Employee dashboard
 gymSubscriptionSchema.index({ handledBy: 1, createdAt: -1 });
 
 const gymSubscriptionModel = mongoose.model(
-  "gymSubscription",
+  "GymSubscription",
   gymSubscriptionSchema,
 );
 export default gymSubscriptionModel;

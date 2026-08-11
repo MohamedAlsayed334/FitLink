@@ -1,0 +1,109 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="users-head">
+      <div class="dash-titles">
+        <p class="fit-eyebrow dash-eyebrow">CLUB ADMIN</p>
+        <h1 class="dash-heading">USERS.</h1>
+      </div>
+      <button
+        class="fit-btn fit-btn--ghost fit-btn--sm"
+        type="button"
+        [disabled]="loading"
+        (click)="load()">Refresh</button>
+    </div>
+
+    <div class="filters fit-card">
+      <div class="filter-field">
+        <label class="fit-label" for="users-role">Role</label>
+        <select id="users-role" class="fit-input" name="role" [(ngModel)]="role" (ngModelChange)="onRoleChange()">
+          <option value="all">All</option>
+          <option value="coach">Coaches</option>
+          <option value="trainee">Trainees</option>
+          <option value="employee">Employees</option>
+          <option value="admin">Admins</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label class="fit-label" for="users-status">Status</label>
+        <select id="users-status" class="fit-input" name="status" [(ngModel)]="status" (ngModelChange)="onStatusChange()">
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="filter-field filter-field--search">
+        <label class="fit-label" for="users-search">Search</label>
+        <input
+          id="users-search"
+          class="fit-input"
+          type="search"
+          name="search"
+          [(ngModel)]="search"
+          (ngModelChange)="onSearchInput()"
+          placeholder="Name or email…" />
+      </div>
+    </div>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <fit-empty-state
+      *ngIf="!loading && !errorMessage && !users.length"
+      icon="👥"
+      title="No users found"
+      message="Adjust your filters or search to see more users."></fit-empty-state>
+
+    <div class="table-wrap fit-card" *ngIf="!loading && !errorMessage && users.length">
+      <table class="fit-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Verification</th>
+            <th>Status</th>
+            <th class="actions-cell">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users" [class.deactivated]="!user.isActive">
+            <td>
+              <span class="person-name">{{ user.firstName }} {{ user.lastName }}</span>
+              <span class="person-meta">{{ user.email }}</span>
+            </td>
+            <td>{{ user.phone || '—' }}</td>
+            <td>
+              <fit-status-pill [label]="roleLabel(user.role)" [tone]="roleTone(user.role)"></fit-status-pill>
+            </td>
+            <td>
+              <fit-status-pill
+                *ngIf="user.role === 'coach'"
+                [label]="user.coachProfile?.isVerified ? 'VERIFIED' : 'UNVERIFIED'"
+                [tone]="user.coachProfile?.isVerified ? 'success' : 'warning'"></fit-status-pill>
+              <span *ngIf="user.role !== 'coach'" class="muted">—</span>
+            </td>
+            <td>
+              <fit-status-pill
+                [label]="user.isActive ? 'ACTIVE' : 'INACTIVE'"
+                [tone]="user.isActive ? 'success' : 'neutral'"></fit-status-pill>
+            </td>
+            <td class="actions-cell">
+              <button
+                class="fit-btn fit-btn--ghost fit-btn--sm"
+                [class.danger-ghost]="user.isActive"
+                [class.success-ghost]="!user.isActive"
+                type="button"
+                [disabled]="actionLoading === user._id"
+                (click)="toggleStatus(user)">
+                {{ actionLoading === user._id ? '…' : (user.isActive ? 'Deactivate' : 'Activate') }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

@@ -68,6 +68,41 @@ export const updatePackage = asyncHandler(async (req, res) => {
 });
 
 
+export const listAllPackages = asyncHandler(async (req, res) => {
+  const packages = await Package.find({}).sort({ type: 1, name: 1 });
+
+  res.status(200).json({
+    success: true,
+    count: packages.length,
+    data: packages,
+  });
+});
+
+
+export const activatePackage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const updated = await Package.findByIdAndUpdate(
+    id,
+    { isActive: true },
+    { new: true }
+  );
+
+  if (!updated) {
+    return res.status(404).json({
+      success: false,
+      message: "Package not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Package activated",
+    data: updated,
+  });
+});
+
+
 export const deactivatePackage = asyncHandler(async (req, res) => {
   const { id } = req.params;
 

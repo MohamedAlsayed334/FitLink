@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import asyncHandler from "../utils/asyncHandler.js";
 import User from "../models/User.js";
 
@@ -70,6 +71,12 @@ export const listCoaches = asyncHandler(async (req, res) => {
 });
 
 export const getCoachById = asyncHandler(async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const err = new Error("Invalid coach id");
+    err.statusCode = 400;
+    throw err;
+  }
+
   const coach = await User.findOne({
     _id: req.params.id,
     role: "coach",

@@ -1,0 +1,78 @@
+<main class="dash">
+  <section class="dash-content">
+    <p class="fit-eyebrow">CHAT</p>
+    <h1 class="dash-heading">MESSAGES.</h1>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+    <div class="chat-wrap">
+      <aside class="chat-list">
+        <fit-loading-spinner *ngIf="loadingConvs" label="Loading conversations"></fit-loading-spinner>
+
+        <ng-container *ngIf="!loadingConvs">
+          <button
+            type="button"
+            *ngFor="let conv of conversations"
+            class="chat-row"
+            [class.is-active]="activeConv === conv"
+            (click)="openConversation(conv)">
+            <span class="chat-row__label">{{ convName(conv) || labelFor(conv) }}</span>
+            <span class="chat-row__id">{{ shortId(conv.otherUserId) }}</span>
+            <span class="chat-row__preview">{{ conv.lastMessage ? conv.lastMessage.body : 'Start a conversation' }}</span>
+            <span class="chat-row__time" *ngIf="conv.lastMessage">{{ conv.lastMessage.createdAt | date: 'shortTime' }}</span>
+            <span class="chat-row__badge" *ngIf="conv.unread > 0">{{ conv.unread }}</span>
+          </button>
+
+          <fit-empty-state
+            *ngIf="conversations.length === 0"
+            icon="✉"
+            title="No conversations yet"
+            [message]="emptyStateMessage">
+          </fit-empty-state>
+        </ng-container>
+      </aside>
+
+      <section class="chat-thread">
+        <ng-container *ngIf="activeConv; else noActive">
+          <header class="chat-thread__header">
+            <span class="chat-thread__name">{{ labelFor(activeConv) }}</span>
+            <span class="chat-thread__id">{{ shortId(activeConv.otherUserId) }}</span>
+          </header>
+
+          <div class="chat-log">
+            <fit-loading-spinner *ngIf="loadingMsgs" label="Loading messages"></fit-loading-spinner>
+
+            <div
+              *ngFor="let msg of messages"
+              class="chat-bubble"
+              [class.chat-bubble--mine]="isMine(msg)"
+              [class.chat-bubble--other]="!isMine(msg)">
+              <p class="chat-bubble__text">{{ msg.body }}</p>
+              <span class="chat-bubble__time">{{ msg.createdAt | date: 'shortTime' }}</span>
+            </div>
+
+            <p *ngIf="!loadingMsgs && messages.length === 0" class="chat-empty-thread">
+              No messages yet — say hello!
+            </p>
+          </div>
+
+          <form class="chat-composer" (ngSubmit)="send()">
+            <input
+              class="fit-input"
+              name="chatBody"
+              [(ngModel)]="body"
+              placeholder="Type a message…"
+              autocomplete="off" />
+            <button type="submit" class="fit-btn fit-btn--primary" [disabled]="sending || !body.trim()">
+              {{ sending ? 'Sending…' : 'Send' }}
+            </button>
+          </form>
+        </ng-container>
+
+        <ng-template #noActive>
+          <p class="chat-thread__hint">Select a conversation to start chatting.</p>
+        </ng-template>
+      </section>
+    </div>
+  </section>
+</main>

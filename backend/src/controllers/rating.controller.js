@@ -44,6 +44,14 @@ export const submitRating = asyncHandler(async (req, res) => {
     throw err;
   }
 
+  if (sub.status !== "active" || sub.paymentStatus !== "paid") {
+    const err = new Error(
+      "Only trainees with an active, paid coach subscription can rate.",
+    );
+    err.statusCode = 403;
+    throw err;
+  }
+
   const existing = await Rating.findOne({ subscriptionId });
   if (existing) {
     const err = new Error("This subscription has already been rated");

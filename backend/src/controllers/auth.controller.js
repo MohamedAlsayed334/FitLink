@@ -9,7 +9,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 const ALLOWED_LST = ["trainee", "coach"];
 
 export const register = asyncHandler(async (req, res) => {
-  const { email, password, role, firstName, lastName, phone } = req.body;
+  const { email, password, role, firstName, lastName, phone, coachProfile } = req.body;
 
   if (!email || !password || !role || !firstName || !lastName) {
     const error = new Error("Please fill all required fields");
@@ -55,10 +55,42 @@ export const register = asyncHandler(async (req, res) => {
   };
 
   if (role === "coach") {
+    const specialization = Array.isArray(coachProfile?.specialization)
+      ? coachProfile.specialization
+          .map((item) => (typeof item === "string" ? item.trim() : ""))
+          .filter((item) => item.length > 0)
+      : [];
+
+    const experience =
+      typeof coachProfile?.experience === "number" && coachProfile.experience >= 0
+        ? coachProfile.experience
+        : 0;
+
+    const bio =
+      typeof coachProfile?.bio === "string" && coachProfile.bio.trim().length <= 1000
+        ? coachProfile.bio.trim()
+        : "";
+
+    const certifications = Array.isArray(coachProfile?.certifications)
+      ? coachProfile.certifications
+          .map((cert) => ({
+            name: typeof cert?.name === "string" ? cert.name.trim() : "",
+            issuer: typeof cert?.issuer === "string" ? cert.issuer.trim() : "",
+            year: Number(cert?.year),
+          }))
+          .filter((cert) => cert.name.length > 0 || cert.issuer.length > 0)
+          .map((cert) => ({
+            name: cert.name,
+            issuer: cert.issuer,
+            year: Number.isFinite(cert.year) && cert.year >= 0 ? cert.year : new Date().getFullYear(),
+          }))
+      : [];
+
     userData.coachProfile = {
-      specialization: [],
-      experience: 0,
-      certifications: [],
+      specialization,
+      experience,
+      bio,
+      certifications,
       isVerified: false,
       isAcceptingClients: true,
       averageRating: 0,

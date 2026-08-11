@@ -1,0 +1,114 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.dash {
+  min-height: 100vh;
+}
+
+.dash-content {
+  max-width: 820px;
+  margin: auto;
+  padding: clamp(var(--space-6), 6vw, 64px);
+}
+
+.dash-eyebrow {
+  margin-bottom: var(--space-2);
+}
+
+.dash-heading {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-2xl);
+  color: var(--ink);
+}
+
+.wi-head {
+  margin-bottom: var(--space-5);
+}
+
+.dash-content .fit-alert {
+  margin-bottom: var(--space-4);
+}
+
+/* ── Mode toggle ─────────────────────────────────────────── */
+
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.mode-btn:hover {
+  border-color: var(--ink);
+}
+
+.mode-btn.active {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgba(255, 77, 28, .18);
+}
+
+.mode-btn-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.mode-btn-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.mode-btn-sub {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+/* ── Form ────────────────────────────────────────────────── */
+
+.wi-form {
+  padding: var(--space-6);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field--full {
+  grid-column: 1 / -1;
+}
+
+.optional {
+  color: var(--muted-light);
+  font-weight: 400;
+}
+
+.wi-actions {
+  margin-top: var(--space-5);
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,0 +1,53 @@
+<main class="dash">
+  <section class="dash-content">
+    <fit-loading-spinner *ngIf="loading" label="Loading profile"></fit-loading-spinner>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+    <ng-container *ngIf="!loading && !errorMessage && user">
+      <p class="fit-eyebrow">PERSONAL ACCOUNT</p>
+      <h1 class="dash-heading">YOUR PROFILE.</h1>
+
+      <div *ngIf="saved" class="fit-alert fit-alert--success" role="status">Profile updated</div>
+
+      <section class="profile-card fit-card">
+        <div class="profile-head">
+          <div class="avatar" aria-hidden="true">
+            <span class="avatar-fallback">{{ initialsOf(user) }}</span>
+          </div>
+          <div class="profile-id">
+            <h2 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h2>
+            <fit-status-pill [label]="user.role | uppercase"></fit-status-pill>
+          </div>
+        </div>
+
+        <p class="profile-email">{{ user.email }}</p>
+        <p class="profile-hint">Email is your sign-in identifier and cannot be changed here.</p>
+
+        <form (ngSubmit)="save()" #profileForm="ngForm">
+          <div class="form-field">
+            <label class="fit-label" for="profile-first">First name *</label>
+            <input id="profile-first" class="fit-input" type="text" name="firstName" [(ngModel)]="form.firstName" required />
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="profile-last">Last name *</label>
+            <input id="profile-last" class="fit-input" type="text" name="lastName" [(ngModel)]="form.lastName" required />
+          </div>
+
+          <div class="form-field">
+            <label class="fit-label" for="profile-phone">Phone</label>
+            <input id="profile-phone" class="fit-input" type="tel" name="phone" [(ngModel)]="form.phone" placeholder="+20 100 123 4567" />
+          </div>
+
+          <div class="profile-actions">
+            <button type="submit" class="fit-btn fit-btn--primary" [disabled]="!canSave || saving">
+              {{ saving ? 'Saving…' : 'Save changes' }}
+            </button>
+            <a [routerLink]="dashboardLink()" class="fit-btn fit-btn--ghost">Back to dashboard</a>
+          </div>
+        </form>
+      </section>
+    </ng-container>
+  </section>
+</main>

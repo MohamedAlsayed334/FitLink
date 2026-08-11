@@ -1,0 +1,143 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="wi-head">
+      <div class="dash-titles">
+        <p class="fit-eyebrow dash-eyebrow">FRONT DESK</p>
+        <h1 class="dash-heading">WALK-IN REGISTRATION.</h1>
+      </div>
+    </div>
+
+    <div class="mode-toggle" role="group" aria-label="Registration mode">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="mode === 'quick'"
+        [attr.aria-pressed]="mode === 'quick'"
+        (click)="setMode('quick')">
+        <span class="mode-btn-icon">⚡</span>
+        <span class="mode-btn-title">Quick walk-in</span>
+        <span class="mode-btn-sub">Just log the visit</span>
+      </button>
+      <button
+        type="button"
+        class="mode-btn"
+        [class.active]="mode === 'full'"
+        [attr.aria-pressed]="mode === 'full'"
+        (click)="setMode('full')">
+        <span class="mode-btn-icon">🧾</span>
+        <span class="mode-btn-title">Full account</span>
+        <span class="mode-btn-sub">Create a member account</span>
+      </button>
+    </div>
+
+    <div *ngIf="successBanner" class="fit-alert fit-alert--success success-banner" role="status">
+      {{ successBanner }}
+    </div>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+    <form class="wi-form fit-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="fit-label" for="firstName">First name</label>
+          <input
+            class="fit-input"
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            placeholder="Ahmed"
+            autocomplete="given-name" />
+          <small class="fit-error" *ngIf="form.get('firstName')?.touched && form.get('firstName')?.hasError('required')">
+            First name is required
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label class="fit-label" for="lastName">Last name</label>
+          <input
+            class="fit-input"
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            placeholder="Mohamed"
+            autocomplete="family-name" />
+          <small class="fit-error" *ngIf="form.get('lastName')?.touched && form.get('lastName')?.hasError('required')">
+            Last name is required
+          </small>
+        </div>
+
+        <div class="form-field" *ngIf="mode === 'full'">
+          <label class="fit-label" for="email">Email</label>
+          <input
+            class="fit-input"
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="you@example.com"
+            autocomplete="email" />
+          <small class="fit-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')">
+            Email is required
+          </small>
+          <small class="fit-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('pattern')">
+            Please enter a valid email
+          </small>
+        </div>
+
+        <div class="form-field" *ngIf="mode === 'full'">
+          <label class="fit-label" for="password">Password</label>
+          <input
+            class="fit-input"
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="At least 6 characters"
+            autocomplete="new-password" />
+          <small class="fit-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">
+            Password is required
+          </small>
+          <small class="fit-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')">
+            Password must be at least 6 characters
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label class="fit-label" for="phone">Phone <span class="optional">(optional)</span></label>
+          <input
+            class="fit-input"
+            id="phone"
+            type="tel"
+            formControlName="phone"
+            placeholder="+20 1xx xxx xxxx"
+            autocomplete="tel" />
+        </div>
+
+        <div class="form-field" *ngIf="mode === 'full'">
+          <label class="fit-label" for="packageId">Gym package</label>
+          <select id="packageId" class="fit-input" formControlName="packageId">
+            <option value="" disabled>Select a gym package</option>
+            <option *ngFor="let pkg of gymPackages" [ngValue]="pkg._id">{{ pkg.name }} — {{ pkg.finalPrice | currency }}</option>
+          </select>
+          <small class="fit-error" *ngIf="form.get('packageId')?.touched && form.get('packageId')?.hasError('required')">
+            Please select a gym package
+          </small>
+        </div>
+
+        <div class="form-field form-field--full" *ngIf="mode === 'quick'">
+          <label class="fit-label" for="notes">Notes <span class="optional">(optional)</span></label>
+          <textarea
+            class="fit-input"
+            id="notes"
+            rows="3"
+            formControlName="notes"
+            placeholder="Anything the front desk should remember…"></textarea>
+        </div>
+      </div>
+
+      <div class="wi-actions">
+        <button type="submit" class="fit-btn fit-btn--primary" [disabled]="submitting">
+          {{ submitting ? (mode === 'quick' ? 'Recording…' : 'Creating…') : (mode === 'quick' ? 'Record walk-in' : 'Create account') }}
+        </button>
+      </div>
+    </form>
+  </section>
+</main>
