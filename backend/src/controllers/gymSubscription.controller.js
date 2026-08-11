@@ -33,6 +33,21 @@ export const createSubscription = asyncHandler(async (req, res) => {
   const { packageId } = req.body;
   const pkg = await resolveGymPackage(packageId);
 
+  // Guard against creating a second gym subscription while one is still active
+  // or pending (unpaid) payment.
+  const existingActive = await GymSubscription.findOne({
+    traineeId: req.user.id,
+    status: { $in: ["active", "pending"] },
+    endDate: { $gt: new Date() },
+  });
+  if (existingActive) {
+    const err = new Error(
+      "You already have an active or pending gym subscription. Renew it or cancel it first.",
+    );
+    err.statusCode = 409;
+    throw err;
+  }
+
   const { startDate, endDate } = buildDates(pkg);
   const finalAmount = calculateFinalPrice(pkg.basePrice, pkg.discountPercent);
 
@@ -43,9 +58,10 @@ export const createSubscription = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     finalAmount,
-    // Trainee self-service: payment is captured async via Paymob webhook
+    // Trainee self-service: payment is captured async via Paymob webhook.
+    // The sub stays "pending" (no access) until the webhook confirms payment.
     paymentStatus: "pending",
-    status: "active",
+    status: "pending",
     history: [{ action: "created", date: new Date() }],
   });
 
@@ -53,7 +69,7 @@ export const createSubscription = asyncHandler(async (req, res) => {
     recipientId: req.user.id,
     type: "subscription_created",
     title: "Gym subscription created",
-    body: `Your gym subscription is active until ${endDate.toDateString()}.`,
+    body: `Your gym subscription is pending until payment is confirmed. Complete payment to activate it.`,
     data: { subscriptionId: sub._id },
   });
 
@@ -156,8 +172,8 @@ export const listGymSubscriptions = asyncHandler(async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
   const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
 
-  if (status && !["active", "expired", "cancelled"].includes(status)) {
-    const err = new Error("status must be active, expired or cancelled");
+  if (status && !["pending", "active", "expired", "cancelled"].includes(status)) {
+    const err = new Error("status must be pending, active, expired or cancelled");
     err.statusCode = 400;
     throw err;
   }
@@ -221,6 +237,19 @@ export const purchaseSubscriptionForTrainee = asyncHandler(async (req, res) => {
   }
 
   const pkg = await resolveGymPackage(packageId);
+  // Guard against duplicate active or pending gym subscriptions for the same trainee.
+  const existingActive = await GymSubscription.findOne({
+    traineeId: trainee._id,
+    status: { $in: ["active", "pending"] },
+    endDate: { $gt: new Date() },
+  });
+  if (existingActive) {
+    const err = new Error(
+      "This trainee already has an active or pending gym subscription.",
+    );
+    err.statusCode = 409;
+    throw err;
+  }
   const { startDate, endDate } = buildDates(pkg);
   const finalAmount = calculateFinalPrice(pkg.basePrice, pkg.discountPercent);
 
@@ -274,41 +303,97 @@ export const renewSubscription = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  // Prevent trainees from stacking unpaid renewals: a self-service renew issues
-  // a pending payment, so reject renewing while one is still outstanding.
-  if (req.user.role === "trainee" && sub.paymentStatus === "pending") {
-    const err = new Error("Complete the outstanding payment before renewing again.");
-    err.statusCode = 409;
+  const RENEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+  const now = new Date();
+
+  // ── Atomic, idempotent, payment-gated renew ──────────────────
+  // The whole guard set lives in the findOneAndUpdate filter, so only ONE
+  // concurrent request can win the claim:
+  //  - paymentStatus pending  => blocks renew (self-service renew issues a
+  //    new pending payment; it must be paid before another renew is allowed)
+  //  - cancelled / expired    => always renewable (fresh period from today)
+  //  - active                 => only within the 7-day pre-expiry window
+  // Once the first request lands, its update flips paymentStatus to "pending"
+  // (trainee) so the second request's filter no longer matches => null => 429.
+  const canRenew = {
+    _id: sub._id,
+    paymentStatus: { $ne: "pending" },
+    $or: [
+      { status: "cancelled" },
+      { status: "expired" },
+      {
+        status: "active",
+        endDate: { $lte: new Date(Date.now() + RENEW_WINDOW_MS) },
+      },
+    ],
+  };
+
+  let newStart;
+  let newEnd;
+  if (sub.status === "cancelled" || sub.status === "expired") {
+    newStart = now;
+    newEnd = addMonths(now, pkg.durationMonths);
+  } else {
+    newStart = sub.startDate;
+    newEnd = addMonths(new Date(sub.endDate), pkg.durationMonths);
+  }
+
+  const isTrainee = req.user.role === "trainee";
+  const newStatus = isTrainee ? "pending" : "active";
+  const newPayment = isTrainee ? "pending" : "paid";
+
+  const updated = await GymSubscription.findOneAndUpdate(
+    canRenew,
+    {
+      $set: {
+        status: newStatus,
+        paymentStatus: newPayment,
+        startDate: newStart,
+        endDate: newEnd,
+        finalAmount: calculateFinalPrice(pkg.basePrice, pkg.discountPercent),
+        expiryRemindersSent: [],
+      },
+      $push: { history: { action: "renewed", date: new Date() } },
+    },
+    { new: true },
+  );
+
+  if (!updated) {
+    // Lost the claim or the guards legitimately rejected the renew. Re-read to
+    // report the most accurate error.
+    const fresh = await GymSubscription.findById(sub._id);
+    if (fresh && fresh.paymentStatus === "pending") {
+      const err = new Error("Complete the outstanding payment before renewing again.");
+      err.statusCode = 409;
+      throw err;
+    }
+    if (
+      fresh &&
+      fresh.status === "active" &&
+      new Date(fresh.endDate).getTime() > Date.now() + RENEW_WINDOW_MS
+    ) {
+      const err = new Error(
+        "This subscription is still active and not close to expiring yet. You can renew within 7 days of its end date."
+      );
+      err.statusCode = 409;
+      throw err;
+    }
+    const err = new Error("Renewal already in progress. Please wait a moment and try again.");
+    err.statusCode = 429;
     throw err;
   }
 
-  sub.finalAmount = calculateFinalPrice(pkg.basePrice, pkg.discountPercent);
-  // Trainee self-renew is a self-service purchase: payment is captured async
-  // via the Paymob webhook. Employee/admin renewals are physical sales and
-  // remain paid immediately.
-  sub.paymentStatus = req.user.role === "trainee" ? "pending" : "paid";
-
-  if (sub.status === "cancelled") {
-    // Re-subscribe: start a fresh period from today
-    sub.startDate = new Date();
-    sub.endDate = addMonths(new Date(), pkg.durationMonths);
-  } else {
-    // Extend the current period (endDate may be in the past for expired subs)
-    sub.endDate = addMonths(new Date(sub.endDate), pkg.durationMonths);
-  }
-  sub.status = "active";
-  sub.history.push({ action: "renewed", date: new Date() });
-  await sub.save();
-
   await notify({
-    recipientId: sub.traineeId,
+    recipientId: updated.traineeId,
     type: "subscription_renewed",
     title: "Gym subscription renewed",
-    body: `Your gym subscription is renewed until ${sub.endDate.toDateString()}.`,
-    data: { subscriptionId: sub._id },
+    body: isTrainee
+      ? "Your gym subscription renewal is pending — complete payment to activate it."
+      : `Your gym subscription is renewed until ${new Date(updated.endDate).toDateString()}.`,
+    data: { subscriptionId: updated._id },
   });
 
-  res.status(200).json({ success: true, data: sub });
+  res.status(200).json({ success: true, data: updated });
 });
 
 export const cancelSubscription = asyncHandler(async (req, res) => {

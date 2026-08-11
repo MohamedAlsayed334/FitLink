@@ -58,10 +58,12 @@ export class TraineeProfileComponent implements OnInit {
         this.gymSubs = res.gymSubscriptions || [];
         this.coachSubs = res.coachSubscriptions || [];
         this.loading = false;
+        this.actionLoading = '';
       },
       error: (err: { message?: string }) => {
         this.errorMessage = err.message || 'Failed to load trainee profile';
         this.loading = false;
+        this.actionLoading = '';
       },
     });
     this.packageService.list().subscribe({
@@ -83,10 +85,10 @@ export class TraineeProfileComponent implements OnInit {
 
   sellPackage(): void {
     if (!this.sellPackageId || !this.trainee) return;
+    if (this.actionLoading === 'sell') return;
     this.actionLoading = 'sell';
     this.gymSubService.purchase(this.trainee._id, this.sellPackageId).subscribe({
       next: () => {
-        this.actionLoading = '';
         this.toast.success('Package sold');
         this.selling = false;
         this.sellPackageId = '';
@@ -100,10 +102,10 @@ export class TraineeProfileComponent implements OnInit {
   }
 
   renew(sub: any): void {
+    if (this.actionLoading === sub._id) return;
     this.actionLoading = sub._id;
     this.gymSubService.renew(sub._id).subscribe({
       next: () => {
-        this.actionLoading = '';
         this.toast.success('Plan renewed');
         this.load(this.trainee._id);
       },
@@ -115,11 +117,11 @@ export class TraineeProfileComponent implements OnInit {
   }
 
   cancel(sub: any): void {
+    if (this.actionLoading === sub._id) return;
     if (!window.confirm('Cancel this gym subscription?')) return;
     this.actionLoading = sub._id;
     this.gymSubService.cancel(sub._id).subscribe({
       next: () => {
-        this.actionLoading = '';
         this.toast.success('Plan cancelled');
         this.load(this.trainee._id);
       },

@@ -45,7 +45,7 @@ export class PaymentResultComponent implements OnInit {
   get message(): string {
     switch (this.state) {
       case 'success':
-        return 'Your payment went through. Your subscription is now active — head back to your dashboard to see your updated membership.';
+        return 'Your payment went through. Your subscription will activate as soon as payment is confirmed.';
       case 'failure':
         return 'We couldn\'t confirm your payment. Nothing has been charged, and your subscription stays pending. You can try again from your dashboard.';
       default:

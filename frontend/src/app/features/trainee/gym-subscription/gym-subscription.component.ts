@@ -4,6 +4,7 @@ import { PackageService } from '../../../core/services/package.service';
 import { GymSubscriptionService } from '../../../core/services/gym-subscription.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Package } from '../../../core/models/package.model';
+import { GymSubscription } from '../../../core/models/gym-subscription.model';
 
 @Component({
   selector: 'fit-gym-subscription',
@@ -12,6 +13,8 @@ import { Package } from '../../../core/models/package.model';
 })
 export class GymSubscriptionComponent implements OnInit {
   packages: Package[] = [];
+  gymSubs: GymSubscription[] = [];
+  blocked = false;
   loading = true;
   errorMessage = '';
   selected: Package | null = null;
@@ -28,6 +31,15 @@ export class GymSubscriptionComponent implements OnInit {
     this.packageService.list().subscribe({
       next: (pkgs) => { this.packages = pkgs.filter((p) => p.type === 'gym'); this.loading = false; },
       error: (err: { message?: string }) => { this.errorMessage = err.message || 'Failed to load plans'; this.loading = false; },
+    });
+    this.gymSubService.mine().subscribe({
+      next: (subs) => {
+        this.gymSubs = subs;
+        this.blocked = subs.some((s) => s.status === 'active' || s.status === 'pending');
+      },
+      error: (err: { message?: string }) => {
+        this.errorMessage = err.message || 'Failed to load subscription';
+      },
     });
   }
 

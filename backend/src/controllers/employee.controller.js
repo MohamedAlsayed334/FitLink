@@ -33,9 +33,10 @@ export const getEmployeeStats = asyncHandler(async (req, res) => {
   ] = await Promise.all([
     WalkInVisit.countDocuments({ createdAt: { $gte: today } }),
     GymSubscription.countDocuments({ createdAt: { $gte: today } }),
-    GymSubscription.countDocuments({ status: "active" }),
+    GymSubscription.countDocuments({ status: "active", paymentStatus: "paid" }),
     GymSubscription.countDocuments({
       status: "active",
+      paymentStatus: "paid",
       endDate: { $gte: new Date(), $lte: monthEnd },
     }),
     GymSubscription.find({

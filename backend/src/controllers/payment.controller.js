@@ -5,6 +5,7 @@ import {
   createPaymentIntention,
   verifyWebhookHmac,
 } from "../services/payment.service.js";
+import { notify } from "../services/notification.service.js";
 
 export const initiatePayment = asyncHandler(async (req, res) => {
   const { subscriptionId, subscriptionType } = req.body;
@@ -81,17 +82,31 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
   }
 
   let sub = await GymSubscription.findById(subscriptionId);
+  let subscriptionType = "gym";
   if (!sub) {
     sub = await CoachSubscription.findById(subscriptionId);
+    subscriptionType = "coach";
   }
 
   if (!sub || sub.paymentStatus === "paid") {
     return res.status(200).json({ received: true });
   }
 
+  // The webhook is the ONLY path that activates a self-service sub: it flips a
+  // pending-payment "pending" sub to "paid" + "active". Self-service subs are
+  // created as "pending" so a trainee gets no access until Paymob confirms.
   sub.paymentStatus = "paid";
+  sub.status = "active";
   sub.history.push({ action: "payment_confirmed", note: "Paid via Paymob" });
   await sub.save();
+
+  await notify({
+    recipientId: sub.traineeId,
+    type: "subscription_activated",
+    title: "Subscription activated",
+    body: `Your ${subscriptionType} subscription is now active until ${new Date(sub.endDate).toDateString()}.`,
+    data: { subscriptionId: sub._id },
+  });
 
   res.status(200).json({ received: true });
 });

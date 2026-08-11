@@ -5,39 +5,52 @@
     <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
 
     <ng-container *ngIf="!loading">
-      <ng-container *ngIf="!selected; else confirmStep">
+      <div *ngIf="blocked" class="block-card fit-card">
         <p class="fit-eyebrow">GYM MEMBERSHIP</p>
-        <h1 class="dash-heading">CHOOSE YOUR GYM PLAN.</h1>
-        <div class="pkg-grid">
-          <article class="fit-card pkg-card" *ngFor="let p of packages">
-            <p class="fit-eyebrow">{{ p.durationMonths }} MONTH{{ p.durationMonths > 1 ? 'S' : '' }}</p>
-            <h3 class="pkg-name">{{ p.name }}</h3>
-            <div class="pkg-price-row">
-              <span class="price">{{ p.finalPrice | currency }}</span>
-              <span *ngIf="p.discountPercent > 0" class="discount">-{{ p.discountPercent }}% OFF</span>
-            </div>
-            <button class="fit-btn fit-btn--primary pkg-cta" (click)="choose(p)">Choose this plan</button>
-          </article>
+        <h1 class="dash-heading">ALREADY A MEMBER.</h1>
+        <div class="fit-alert fit-alert--warn block-alert">
+          You already have an active gym membership. Renew it or cancel it from your dashboard to choose a new plan.
         </div>
-      </ng-container>
+        <div class="sub-actions">
+          <a routerLink="/trainee" class="fit-btn fit-btn--primary">Back to dashboard</a>
+        </div>
+      </div>
 
-      <ng-template #confirmStep>
-        <ng-container *ngIf="selected as sel">
-          <section class="confirm-card fit-card">
-            <p class="fit-eyebrow">{{ sel.durationMonths }} MONTH{{ sel.durationMonths > 1 ? 'S' : '' }}</p>
-            <h1 class="dash-heading">CONFIRM {{ sel.name }}.</h1>
-            <p class="price">{{ sel.finalPrice | currency }}</p>
-            <p class="confirm-note">Your plan will be created as pending — you'll complete payment securely at checkout to activate it.</p>
-            <div class="sub-actions">
-              <button class="fit-btn fit-btn--primary" [disabled]="processing" (click)="confirm()">
-                <ng-container *ngIf="processing; else confirmLabel">Processing…</ng-container>
-                <ng-template #confirmLabel>Confirm payment</ng-template>
-              </button>
-              <button class="fit-btn fit-btn--ghost" (click)="back()">Back</button>
-            </div>
-          </section>
+      <ng-container *ngIf="!blocked">
+        <ng-container *ngIf="!selected; else confirmStep">
+          <p class="fit-eyebrow">GYM MEMBERSHIP</p>
+          <h1 class="dash-heading">CHOOSE YOUR GYM PLAN.</h1>
+          <div class="pkg-grid">
+            <article class="fit-card pkg-card" *ngFor="let p of packages">
+              <p class="fit-eyebrow">{{ p.durationMonths }} MONTH{{ p.durationMonths > 1 ? 'S' : '' }}</p>
+              <h3 class="pkg-name">{{ p.name }}</h3>
+              <div class="pkg-price-row">
+                <span class="price">{{ p.finalPrice | currency }}</span>
+                <span *ngIf="p.discountPercent > 0" class="discount">-{{ p.discountPercent }}% OFF</span>
+              </div>
+              <button class="fit-btn fit-btn--primary pkg-cta" (click)="choose(p)">Choose this plan</button>
+            </article>
+          </div>
         </ng-container>
-      </ng-template>
+
+        <ng-template #confirmStep>
+          <ng-container *ngIf="selected as sel">
+            <section class="confirm-card fit-card">
+              <p class="fit-eyebrow">{{ sel.durationMonths }} MONTH{{ sel.durationMonths > 1 ? 'S' : '' }}</p>
+              <h1 class="dash-heading">CONFIRM {{ sel.name }}.</h1>
+              <p class="price">{{ sel.finalPrice | currency }}</p>
+              <p class="confirm-note">Your plan will be created as pending — you'll complete payment securely at checkout to activate it.</p>
+              <div class="sub-actions">
+                <button class="fit-btn fit-btn--primary" [disabled]="processing" (click)="confirm()">
+                  <ng-container *ngIf="processing; else confirmLabel">Processing…</ng-container>
+                  <ng-template #confirmLabel>Confirm payment</ng-template>
+                </button>
+                <button class="fit-btn fit-btn--ghost" (click)="back()">Back</button>
+              </div>
+            </section>
+          </ng-container>
+        </ng-template>
+      </ng-container>
     </ng-container>
   </section>
 </main>

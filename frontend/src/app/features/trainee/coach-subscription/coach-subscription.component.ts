@@ -62,7 +62,11 @@ export class CoachSubscriptionComponent implements OnInit {
   }
 
   get blocked(): boolean {
-    return this.conflictBlocked || (!!this.active && this.active.status === 'active');
+    return (
+      this.conflictBlocked ||
+      (!!this.active &&
+        (this.active.status === 'active' || this.active.status === 'pending'))
+    );
   }
 
   selectCoach(coach: User): void {

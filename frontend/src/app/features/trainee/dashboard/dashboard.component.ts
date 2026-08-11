@@ -82,12 +82,23 @@ export class TraineeDashboardComponent implements OnInit {
 
   /* ── Gym membership ─────────────────────────────────────────── */
 
+  /** Only PAID active subs count as active; an unpaid/pending sub is not. */
   get activeGym(): GymSubscription | undefined {
-    return this.gymSubs.find((s) => s.status === 'active');
+    return this.gymSubs.find(
+      (s) => s.status === 'active' && s.paymentStatus === 'paid',
+    );
+  }
+
+  get pendingGym(): GymSubscription | undefined {
+    return this.gymSubs.find((s) => s.status === 'pending');
   }
 
   get currentGym(): GymSubscription | undefined {
-    return this.activeGym ?? this.gymSubs.find((s) => this.isExpired(s));
+    return (
+      this.activeGym ??
+      this.pendingGym ??
+      this.gymSubs.find((s) => this.isExpired(s))
+    );
   }
 
   private isExpired(s: GymSubscription): boolean {
@@ -115,8 +126,9 @@ export class TraineeDashboardComponent implements OnInit {
     );
   }
 
-  gymStatus(): 'active' | 'expired' | 'cancelled' | 'none' {
+  gymStatus(): 'active' | 'pending' | 'expired' | 'cancelled' | 'none' {
     if (this.activeGym) return 'active';
+    if (this.pendingGym) return 'pending';
     if (this.gymSubs.some((s) => this.isExpired(s))) return 'expired';
     const cancelled = this.gymSubs.some((s) => s.status === 'cancelled');
     return cancelled ? 'cancelled' : 'none';
@@ -136,6 +148,22 @@ export class TraineeDashboardComponent implements OnInit {
     const act = this.currentGym;
     if (!act?.endDate) return null;
     return new Date(act.endDate);
+  }
+
+  /** Whether the current gym plan can be renewed right now.
+   *  Mirrors the backend rule: renew allowed only when the sub is already
+   *  cancelled/expired, or within RENEW_WINDOW_DAYS (7) of its end date. */
+  get canRenewGym(): boolean {
+    const sub = this.currentGym;
+    if (!sub) return false;
+    if (sub.status === 'pending') return false; // must pay first
+    if (sub.paymentStatus === 'pending') return false; // must pay first
+    if (sub.status === 'cancelled') return true;        // re-subscribe
+    if (sub.status === 'expired') return true;          // restart
+    if (!sub.endDate) return false;
+    const RENEW_WINDOW_DAYS = 7;
+    const windowMs = RENEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+    return new Date(sub.endDate).getTime() - Date.now() <= windowMs;
   }
 
   /** 0–100, how much of the current period has elapsed. */
@@ -209,6 +237,15 @@ export class TraineeDashboardComponent implements OnInit {
     return typeof raw === 'string' ? raw : raw._id;
   }
 
+  /** Only a PAID ACTIVE coach sub unlocks paid benefits (messaging, rating). */
+  get coachActive(): boolean {
+    return (
+      !!this.coachSub &&
+      this.coachSub.status === 'active' &&
+      this.coachSub.paymentStatus === 'paid'
+    );
+  }
+
   get coachPackageName(): string {
     if (!this.coachSub?.packageId) return 'Coaching';
     return this.packageName(this.coachSub.packageId);
@@ -228,6 +265,9 @@ export class TraineeDashboardComponent implements OnInit {
     const g = this.gymStatus();
     if (g === 'active' && this.gymRenewalDate) {
       return `Your membership runs until ${this.gymRenewalDate.toLocaleDateString()} — ${this.gymDaysRemaining} days to go.`;
+    }
+    if (g === 'pending') {
+      return 'Your gym membership is awaiting payment — complete checkout to activate it.';
     }
     if (g === 'expired') {
       return 'Your membership has lapsed. Renew to keep training.';
@@ -336,6 +376,10 @@ export class TraineeDashboardComponent implements OnInit {
   }
 
   messageCoach(): void {
+    if (!this.coachActive) {
+      this.toast.error('Your coach subscription must be active and paid to message.');
+      return;
+    }
     const id = this.coachIdForChat;
     if (!id) return;
     void this.router.navigate(['/chat'], { queryParams: { with: id } });

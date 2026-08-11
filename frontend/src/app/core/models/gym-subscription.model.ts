@@ -1,4 +1,4 @@
-export type SubscriptionStatus = 'active' | 'expired' | 'cancelled';
+export type SubscriptionStatus = 'active' | 'pending' | 'expired' | 'cancelled';
 export type PaymentStatus = 'paid' | 'pending';
 
 export interface SubscriptionHistoryEntry {

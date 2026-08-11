@@ -38,10 +38,12 @@ export class ExpirationsComponent implements OnInit {
           return end >= now && end <= horizon;
         });
         this.loading = false;
+        this.actionLoading = '';
       },
       error: (err: { message?: string }) => {
         this.errorMessage = err.message || 'Failed to load expirations';
         this.loading = false;
+        this.actionLoading = '';
       },
     });
   }
@@ -72,10 +74,10 @@ export class ExpirationsComponent implements OnInit {
   }
 
   renew(sub: GymSubscription): void {
+    if (this.actionLoading === sub._id) return;
     this.actionLoading = sub._id;
     this.gymSubService.renew(sub._id).subscribe({
       next: () => {
-        this.actionLoading = '';
         this.toast.success('Plan renewed');
         this.load();
       },

@@ -354,6 +354,14 @@
   filter: saturate(.4);
 }
 
+.coach-locked-note {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 /* ── Cancel form ─────────────────────────────────────────── */
 
 .cancel-form {

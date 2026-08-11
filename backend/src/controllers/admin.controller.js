@@ -16,8 +16,8 @@ export const getDashboardSummary = asyncHandler(async (req, res) => {
     unverifiedCoaches,
   ] = await Promise.all([
     User.aggregate([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
-    GymSubscription.countDocuments({ status: "active" }),
-    CoachSubscription.countDocuments({ status: "active" }),
+    GymSubscription.countDocuments({ status: "active", paymentStatus: "paid" }),
+    CoachSubscription.countDocuments({ status: "active", paymentStatus: "paid" }),
     GymSubscription.find({ status: "active", paymentStatus: "paid" }).select(
       "finalAmount",
     ),

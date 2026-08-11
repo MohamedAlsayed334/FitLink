@@ -45,6 +45,11 @@ export async function assertCanChat(actorUser, targetId) {
     err.statusCode = 403;
     throw err;
   }
+  if (subscription.status !== "active" || subscription.paymentStatus !== "paid") {
+    const err = new Error("Your coach subscription must be active and paid to chat.");
+    err.statusCode = 403;
+    throw err;
+  }
 
   return pair;
 }
@@ -167,11 +172,19 @@ export async function getConversations(userId) {
   // real message conversation is skipped to avoid duplicates.
   const subs =
     me.role === "coach"
-      ? await CoachSubscription.find({ coachId: me._id, status: "active" })
+      ? await CoachSubscription.find({
+          coachId: me._id,
+          status: "active",
+          paymentStatus: "paid",
+        })
           .select("coachId traineeId")
           .lean()
       : me.role === "trainee"
-        ? await CoachSubscription.find({ traineeId: me._id, status: "active" })
+        ? await CoachSubscription.find({
+            traineeId: me._id,
+            status: "active",
+            paymentStatus: "paid",
+          })
             .select("coachId traineeId")
             .lean()
         : [];

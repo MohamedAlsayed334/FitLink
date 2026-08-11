@@ -19,6 +19,7 @@
           <span class="stat-label">Membership</span>
           <ng-container [ngSwitch]="gymStatus()">
             <span class="stat-value stat-value--ok" *ngSwitchCase="'active'">Active</span>
+            <span class="stat-value stat-value--warn" *ngSwitchCase="'pending'">Pending</span>
             <span class="stat-value stat-value--warn" *ngSwitchCase="'expired'">Expired</span>
             <span class="stat-value stat-value--bad" *ngSwitchCase="'cancelled'">Cancelled</span>
             <span class="stat-value" *ngSwitchDefault>No plan</span>
@@ -131,7 +132,7 @@
                     class="fit-btn fit-btn--primary fit-btn--muted"
                     disabled>Renewal pending — complete payment</button>
                   <button
-                    *ngIf="(gymStatus() === 'active' || gymStatus() === 'expired') && currentGym?.paymentStatus !== 'pending' && !renewing"
+                    *ngIf="canRenewGym && !renewing"
                     class="fit-btn fit-btn--primary"
                     (click)="renew()"
                     [disabled]="renewing">Renew</button>
@@ -240,11 +241,16 @@
               </div>
 
               <div class="sub-actions">
-                <button
-                  class="fit-btn fit-btn--primary"
-                  (click)="messageCoach()"
-                  [disabled]="!coachIdForChat">Message coach</button>
-                <a [routerLink]="['/trainee/rate', sub._id]" class="fit-btn fit-btn--ghost">Rate coach</a>
+                <ng-container *ngIf="coachActive; else coachLockedNote">
+                  <button
+                    class="fit-btn fit-btn--primary"
+                    (click)="messageCoach()"
+                    [disabled]="!coachIdForChat">Message coach</button>
+                  <a [routerLink]="['/trainee/rate', sub._id]" class="fit-btn fit-btn--ghost">Rate coach</a>
+                </ng-container>
+                <ng-template #coachLockedNote>
+                  <p class="coach-locked-note">Message and rating unlock once your payment is confirmed.</p>
+                </ng-template>
                 <button class="fit-btn fit-btn--ghost" (click)="toggleCancelForm()">Cancel subscription</button>
               </div>
 
