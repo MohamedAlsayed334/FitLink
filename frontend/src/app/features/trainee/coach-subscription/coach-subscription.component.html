@@ -1,0 +1,93 @@
+<main class="coach-page">
+  <section class="coach-content">
+    <fit-loading-spinner *ngIf="loading" label="Loading coaches"></fit-loading-spinner>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+    <div *ngIf="!loading && blocked" class="block-card fit-card">
+      <p class="fit-eyebrow">COACH SUBSCRIPTION</p>
+      <h1 class="dash-heading">COACH SUBSCRIPTION.</h1>
+      <ng-container *ngIf="active?.cancellationRequest?.requested === true; else notPending">
+        <div class="fit-alert fit-alert--warn block-alert">
+          Your cancellation request is still pending approval. Once it is approved, you'll be able to subscribe to a new coach.
+        </div>
+        <div class="sub-actions">
+          <a
+            routerLink="/trainee"
+            class="fit-btn fit-btn--primary">View my subscription status</a>
+        </div>
+      </ng-container>
+      <ng-template #notPending>
+        <div class="fit-alert fit-alert--warn block-alert">
+          You already have an active coach subscription. Cancel it first before subscribing to a new coach.
+        </div>
+        <div class="sub-actions">
+          <a
+            routerLink="/trainee"
+            [queryParams]="{ cancelCoach: '1' }"
+            class="fit-btn fit-btn--primary">Cancel my current subscription</a>
+        </div>
+      </ng-template>
+    </div>
+
+    <ng-container *ngIf="!loading && !blocked">
+      <ng-container *ngIf="!selectedCoach; else coachPlans">
+        <p class="fit-eyebrow">VERIFIED COACHES</p>
+        <h1 class="dash-heading">CHOOSE YOUR COACH.</h1>
+        <div class="coach-grid">
+          <article class="fit-card coach-card" *ngFor="let c of coaches">
+            <div class="coach-avatar">{{ c.firstName.charAt(0) }}</div>
+            <div class="coach-id">
+              <h3 class="coach-name">{{ c.firstName }} {{ c.lastName }}</h3>
+              <div class="coach-rating">
+                <fit-star-rating [rating]="c.coachProfile?.averageRating || 0"></fit-star-rating>
+              </div>
+            </div>
+            <div class="coach-badges">
+              <fit-status-pill *ngIf="c.coachProfile?.isVerified" label="VERIFIED" tone="success"></fit-status-pill>
+              <span *ngIf="c.coachProfile?.isAcceptingClients" class="badge-accepting">ACCEPTING CLIENTS</span>
+            </div>
+            <div class="spec-chips" *ngIf="c.coachProfile?.specialization?.length">
+              <span class="spec-chip" *ngFor="let spec of c.coachProfile!.specialization">{{ spec }}</span>
+            </div>
+            <button class="fit-btn fit-btn--primary coach-cta" (click)="selectCoach(c)">Choose coach</button>
+          </article>
+        </div>
+      </ng-container>
+
+      <ng-template #coachPlans>
+        <ng-container *ngIf="selectedCoach as coach">
+          <p class="fit-eyebrow">SELECTED COACH</p>
+          <div class="coach-summary fit-card">
+            <div class="coach-avatar">{{ coach.firstName.charAt(0) }}</div>
+            <div class="coach-id">
+              <h1 class="dash-heading">{{ coach.firstName }} {{ coach.lastName }}</h1>
+              <div class="coach-rating">
+                <fit-star-rating [rating]="coach.coachProfile?.averageRating || 0"></fit-star-rating>
+              </div>
+              <div class="coach-badges">
+                <fit-status-pill *ngIf="coach.coachProfile?.isVerified" label="VERIFIED" tone="success"></fit-status-pill>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="section-title">Coaching packages</h2>
+          <div class="pkg-grid">
+            <article class="fit-card pkg-card" *ngFor="let p of packages">
+              <p class="fit-eyebrow">{{ p.durationMonths }} MONTH{{ p.durationMonths > 1 ? 'S' : '' }}</p>
+              <h3 class="pkg-name">{{ p.name }}</h3>
+              <div class="pkg-price-row">
+                <span class="price">{{ p.finalPrice | currency }}</span>
+                <span *ngIf="p.discountPercent > 0" class="discount">-{{ p.discountPercent }}% OFF</span>
+              </div>
+              <button class="fit-btn fit-btn--primary pkg-cta" [disabled]="processing" (click)="subscribe(p)">Subscribe</button>
+            </article>
+          </div>
+          <div class="sub-actions">
+            <button class="fit-btn fit-btn--ghost" (click)="backToList()">Back to all coaches</button>
+          </div>
+        </ng-container>
+      </ng-template>
+    </ng-container>
+  </section>
+</main>
