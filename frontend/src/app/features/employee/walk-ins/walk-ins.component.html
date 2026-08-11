@@ -1,0 +1,87 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="wi-head">
+      <div class="dash-titles">
+        <p class="fit-eyebrow dash-eyebrow">FRONT DESK</p>
+        <h1 class="dash-heading">RECENT WALK-INS.</h1>
+      </div>
+      <button
+        class="fit-btn fit-btn--ghost fit-btn--sm"
+        type="button"
+        [disabled]="loading"
+        (click)="load()">Refresh</button>
+    </div>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <section class="section" *ngIf="!loading && !errorMessage">
+      <h2 class="section-title">Walk-in visits</h2>
+      <fit-empty-state
+        *ngIf="!visits.length"
+        icon="🚪"
+        title="No walk-in visits"
+        message="Visits recorded at the front desk will appear here."></fit-empty-state>
+      <div class="table-wrap fit-card" *ngIf="visits.length">
+        <table class="fit-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Time handled</th>
+              <th>Handled by</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let visit of visits">
+              <td>
+                <span class="person-name">{{ visit.firstName }} {{ visit.lastName }}</span>
+              </td>
+              <td>{{ visit.phone || '—' }}</td>
+              <td>{{ visit.createdAt | date: 'medium' }}</td>
+              <td>{{ handledByName(visit) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" *ngIf="!loading && !errorMessage">
+      <h2 class="section-title">Recent signups</h2>
+      <fit-empty-state
+        *ngIf="!signups.length"
+        icon="✍"
+        title="No recent signups"
+        message="Full accounts created at the front desk will appear here."></fit-empty-state>
+      <div class="table-wrap fit-card" *ngIf="signups.length">
+        <table class="fit-table">
+          <thead>
+            <tr>
+              <th>Trainee</th>
+              <th>Package</th>
+              <th>Start date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sub of signups">
+              <td>
+                <span class="person-name">{{ traineeName(sub) }}</span>
+              </td>
+              <td>{{ packageName(sub) }}</td>
+              <td>{{ sub.startDate | date: 'mediumDate' }}</td>
+              <td>{{ sub.finalAmount | currency }}</td>
+              <td>
+                <fit-status-pill [label]="sub.status" [tone]="statusTone(sub.status)"></fit-status-pill>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>

@@ -7,6 +7,7 @@ import gymSubscriptionRoutes from "./gymSubscription.routes.js";
 import coachSubscriptionRoutes from "./coachSubscription.routes.js";
 import ratingRoutes from "./rating.routes.js";
 import adminRoutes from "./admin.routes.js";
+import employeeRoutes from "./employee.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import chatRoutes from "./chat.routes.js";
 
@@ -19,6 +20,7 @@ router.use("/gym-subscriptions", gymSubscriptionRoutes);
 router.use("/coach-subscriptions", coachSubscriptionRoutes);
 router.use("/ratings", ratingRoutes);
 router.use("/admin", adminRoutes);
+router.use("/employee", employeeRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/chat", chatRoutes);
 

@@ -1,0 +1,68 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="exp-head">
+      <div class="dash-titles">
+        <p class="fit-eyebrow dash-eyebrow">FRONT DESK</p>
+        <h1 class="dash-heading">EXPIRATIONS.</h1>
+      </div>
+      <button
+        class="fit-btn fit-btn--ghost fit-btn--sm"
+        type="button"
+        [disabled]="loading"
+        (click)="load()">Refresh</button>
+    </div>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <p class="exp-count" *ngIf="!loading && !errorMessage && expiring.length">
+      {{ expiring.length === 1 ? '1 plan' : expiring.length + ' plans' }} expiring in the next 30 days
+    </p>
+
+    <fit-empty-state
+      *ngIf="!loading && !errorMessage && !expiring.length"
+      icon="⏳"
+      title="No expirations soon"
+      message="No active plans are expiring in the next 30 days."></fit-empty-state>
+
+    <div class="table-wrap fit-card" *ngIf="!loading && !errorMessage && expiring.length">
+      <table class="fit-table">
+        <thead>
+          <tr>
+            <th>Trainee</th>
+            <th>Package</th>
+            <th>Start date</th>
+            <th>Expires</th>
+            <th>Days left</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sub of expiring">
+            <td>
+              <span class="person-name">{{ traineeName(sub) }}</span>
+            </td>
+            <td>{{ packageName(sub) }}</td>
+            <td>{{ sub.startDate | date: 'mediumDate' }}</td>
+            <td>{{ sub.endDate | date: 'mediumDate' }}</td>
+            <td>
+              <fit-status-pill [label]="daysLeft(sub) + 'd left'" [tone]="daysTone(daysLeft(sub))"></fit-status-pill>
+            </td>
+            <td>{{ sub.finalAmount | currency }}</td>
+            <td>
+              <button
+                class="fit-btn fit-btn--primary fit-btn--sm"
+                type="button"
+                [disabled]="actionLoading === sub._id"
+                (click)="renew(sub)">{{ actionLoading === sub._id ? '…' : 'Renew' }}</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,135 @@
+<main class="dash">
+  <section class="dash-content">
+    <button type="button" class="back-btn" (click)="back()">← Back to trainees</button>
+
+    <div *ngIf="loading">
+      <fit-loading-spinner label="Loading trainee profile"></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="!loading && errorMessage" class="fit-alert fit-alert--error" role="alert">{{ errorMessage }}</div>
+
+    <ng-container *ngIf="!loading && !errorMessage && trainee">
+      <div class="profile-head fit-card">
+        <div class="profile-main">
+          <div class="profile-avatar">{{ initials }}</div>
+          <div>
+            <p class="fit-eyebrow">TRAINEE PROFILE</p>
+            <h1 class="profile-name">{{ trainee.firstName }} {{ trainee.lastName }}</h1>
+            <p class="profile-meta">{{ trainee.email }} <span class="dot">·</span> {{ trainee.phone || 'No phone' }}</p>
+          </div>
+        </div>
+        <div class="profile-actions">
+          <fit-status-pill [label]="trainee.isActive ? 'ACTIVE' : 'INACTIVE'" [tone]="trainee.isActive ? 'success' : 'neutral'"></fit-status-pill>
+          <button type="button" class="fit-btn fit-btn--primary" (click)="toggleSellPanel()">Sell gym package</button>
+        </div>
+      </div>
+
+      <div class="sell-panel fit-card" *ngIf="selling">
+        <label class="fit-label" for="sellPackageId">Gym package</label>
+        <div class="sell-row">
+          <select id="sellPackageId" class="fit-input" [(ngModel)]="sellPackageId">
+            <option value="" disabled>Select a gym package</option>
+            <option *ngFor="let pkg of gymPackages" [value]="pkg._id">{{ pkg.name }} — {{ pkg.finalPrice | currency }}</option>
+          </select>
+          <button
+            type="button"
+            class="fit-btn fit-btn--primary fit-btn--sm"
+            [disabled]="actionLoading === 'sell' || !sellPackageId"
+            (click)="sellPackage()">{{ actionLoading === 'sell' ? 'Selling…' : 'Sell' }}</button>
+          <button type="button" class="fit-btn fit-btn--ghost fit-btn--sm" (click)="toggleSellPanel()">Close</button>
+        </div>
+      </div>
+
+      <section class="profile-section">
+        <h2 class="section-title">Gym subscriptions</h2>
+        <fit-empty-state
+          *ngIf="!gymSubs.length"
+          icon="🏋"
+          title="No gym subscription yet"
+          message="Sell one to get this trainee training."></fit-empty-state>
+        <div class="table-wrap fit-card" *ngIf="gymSubs.length">
+          <table class="fit-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Status</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Payment</th>
+                <th>Amount</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let sub of gymSubs">
+                <td>
+                  <span class="person-name">{{ packageName(sub) }}</span>
+                </td>
+                <td>
+                  <fit-status-pill [label]="sub.status" [tone]="statusTone(sub.status)"></fit-status-pill>
+                </td>
+                <td>{{ sub.startDate | date: 'mediumDate' }}</td>
+                <td>{{ sub.endDate | date: 'mediumDate' }}</td>
+                <td>
+                  <fit-status-pill [label]="sub.paymentStatus" [tone]="paymentTone(sub.paymentStatus)"></fit-status-pill>
+                </td>
+                <td>{{ sub.finalAmount | currency }}</td>
+                <td>
+                  <div class="actions-cell">
+                    <button
+                      class="fit-btn fit-btn--primary fit-btn--sm"
+                      type="button"
+                      [disabled]="actionLoading === sub._id"
+                      (click)="renew(sub)">{{ actionLoading === sub._id ? '…' : 'Renew' }}</button>
+                    <button
+                      class="fit-btn fit-btn--ghost fit-btn--sm"
+                      type="button"
+                      [disabled]="actionLoading === sub._id"
+                      (click)="cancel(sub)">Cancel</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="profile-section">
+        <h2 class="section-title">Coach subscriptions</h2>
+        <fit-empty-state
+          *ngIf="!coachSubs.length"
+          icon="🎯"
+          title="No coach subscription"
+          message="This trainee is not subscribed to a coach."></fit-empty-state>
+        <div class="table-wrap fit-card" *ngIf="coachSubs.length">
+          <table class="fit-table">
+            <thead>
+              <tr>
+                <th>Coach</th>
+                <th>Package</th>
+                <th>Status</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let sub of coachSubs">
+                <td>
+                  <span class="person-name">{{ coachName(sub) }}</span>
+                </td>
+                <td>{{ packageName(sub) }}</td>
+                <td>
+                  <fit-status-pill [label]="sub.status" [tone]="statusTone(sub.status)"></fit-status-pill>
+                </td>
+                <td>{{ sub.startDate | date: 'mediumDate' }}</td>
+                <td>{{ sub.endDate | date: 'mediumDate' }}</td>
+                <td>{{ sub.finalAmount | currency }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-container>
+  </section>
+</main>

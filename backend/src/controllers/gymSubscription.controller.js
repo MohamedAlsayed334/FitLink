@@ -2,6 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import User from "../models/User.js";
 import Package from "../models/Package.js";
 import GymSubscription from "../models/GymSubscription.js";
+import WalkInVisit from "../models/WalkInVisit.js";
 import { calculateFinalPrice } from "../services/pricing.service.js";
 import { hashPassword } from "../services/auth.service.js";
 import { notify } from "../services/notification.service.js";
@@ -59,41 +60,65 @@ export const createSubscription = asyncHandler(async (req, res) => {
 });
 
 export const registerWalkInTrainee = asyncHandler(async (req, res) => {
-  const { firstName, lastName, phone, email, password, packageId } = req.body;
+  const { firstName, lastName, phone, email, password, packageId, mode } =
+    req.body;
 
-  if (!firstName || !lastName || !packageId) {
-    const err = new Error("firstName, lastName and packageId are required");
+  if (!firstName || !lastName) {
+    const err = new Error("firstName and lastName are required");
     err.statusCode = 400;
     throw err;
   }
 
-  if (!email && !phone) {
-    const err = new Error("Either email or phone is required");
+  const walkInMode = mode || "full";
+  if (!["quick", "full"].includes(walkInMode)) {
+    const err = new Error("mode must be either \"quick\" or \"full\"");
     err.statusCode = 400;
     throw err;
   }
 
-  if (password && password.length < 6) {
+  if (walkInMode === "quick") {
+    const visit = await WalkInVisit.create({
+      firstName,
+      lastName,
+      phone,
+      handledBy: req.user.id,
+      notes: req.body.notes,
+    });
+    return res.status(201).json({ success: true, data: { visit } });
+  }
+
+  if (!packageId) {
+    const err = new Error("packageId is required");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (!email) {
+    const err = new Error("Email is required");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (!password || password.length < 6) {
     const err = new Error("Password must be at least 6 characters");
     err.statusCode = 400;
     throw err;
   }
 
-  const resolvedEmail = email || `${phone}@fitlink.walkin`;
-  const existing = await User.findOne({ email: resolvedEmail });
+  const existing = await User.findOne({ email });
   if (existing) {
     const err = new Error("A user with this email already exists");
     err.statusCode = 409;
     throw err;
   }
 
-  const hashed = await hashPassword(password || phone || "walkin-default-pw");
+  const hashed = await hashPassword(password);
 
   const user = await User.create({
     firstName,
     lastName,
     phone,
-    email: resolvedEmail,
+    email,
     password: hashed,
     role: "trainee",
   });
@@ -123,6 +148,102 @@ export const registerWalkInTrainee = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json({ success: true, data: { user, subscription: sub } });
+});
+
+export const listGymSubscriptions = asyncHandler(async (req, res) => {
+  const { status, search } = req.query;
+  const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+  const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+  if (status && !["active", "expired", "cancelled"].includes(status)) {
+    const err = new Error("status must be active, expired or cancelled");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const filter = {};
+  if (status) filter.status = status;
+
+  let traineeIds;
+  if (search) {
+    const regex = new RegExp(search, "i");
+    const matches = await User.find({
+      role: "trainee",
+      $or: [
+        { firstName: regex },
+        { lastName: regex },
+        { email: regex },
+        { phone: regex },
+      ],
+    }).select("_id");
+    traineeIds = matches.map((u) => u._id);
+    if (traineeIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: { subscriptions: [], total: 0, page, limit },
+      });
+    }
+    filter.traineeId = { $in: traineeIds };
+  }
+
+  const [subscriptions, total] = await Promise.all([
+    GymSubscription.find(filter)
+      .populate("traineeId", "firstName lastName email phone")
+      .populate("packageId")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    GymSubscription.countDocuments(filter),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: { subscriptions, total, page, limit },
+  });
+});
+
+export const purchaseSubscriptionForTrainee = asyncHandler(async (req, res) => {
+  const { traineeId } = req.params;
+  const { packageId } = req.body;
+
+  if (!packageId) {
+    const err = new Error("packageId is required");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const trainee = await User.findOne({ _id: traineeId, role: "trainee" });
+  if (!trainee) {
+    const err = new Error("Trainee not found");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const pkg = await resolveGymPackage(packageId);
+  const { startDate, endDate } = buildDates(pkg);
+  const finalAmount = calculateFinalPrice(pkg.basePrice, pkg.discountPercent);
+
+  const sub = await GymSubscription.create({
+    traineeId: trainee._id,
+    packageId: pkg._id,
+    handledBy: req.user.id,
+    startDate,
+    endDate,
+    finalAmount,
+    paymentStatus: "paid",
+    status: "active",
+    history: [{ action: "created", date: new Date() }],
+  });
+
+  await notify({
+    recipientId: trainee._id,
+    type: "subscription_created",
+    title: "Gym subscription created",
+    body: `Your gym subscription is active until ${endDate.toDateString()}.`,
+    data: { subscriptionId: sub._id },
+  });
+
+  res.status(201).json({ success: true, data: sub });
 });
 
 export const renewSubscription = asyncHandler(async (req, res) => {

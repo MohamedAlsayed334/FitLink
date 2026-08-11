@@ -1,0 +1,51 @@
+<main class="dash">
+  <section class="dash-content">
+    <div *ngIf="loading">
+      <fit-loading-spinner></fit-loading-spinner>
+    </div>
+
+    <div *ngIf="errorMessage" class="fit-alert fit-alert--error">{{ errorMessage }}</div>
+
+    <ng-container *ngIf="stats as s">
+      <div class="dash-head-row">
+        <div class="dash-titles">
+          <p class="fit-eyebrow dash-eyebrow">FRONT DESK</p>
+          <h1 class="dash-heading">OPERATIONS OVERVIEW</h1>
+        </div>
+        <div class="dashboard-actions">
+          <button type="button" class="fit-btn fit-btn--ghost" (click)="go('/employee/walk-in')">Register walk-in</button>
+          <button type="button" class="fit-btn fit-btn--ghost" (click)="go('/employee/walk-ins')">Recent walk-ins</button>
+          <button type="button" class="fit-btn fit-btn--ghost" (click)="go('/employee/expirations')">View expirations</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-tile fit-card">
+          <span class="stat-icon">🚪</span>
+          <span class="stat-label">Today's walk-ins</span>
+          <span class="stat-number">{{ s.todayWalkIns }}</span>
+        </div>
+        <div class="stat-tile fit-card">
+          <span class="stat-icon">✍</span>
+          <span class="stat-label">Today's signups</span>
+          <span class="stat-number">{{ s.todaySignups }}</span>
+        </div>
+        <div class="stat-tile fit-card">
+          <span class="stat-icon">🏋</span>
+          <span class="stat-label">Active members</span>
+          <span class="stat-number">{{ s.activeMembers }}</span>
+        </div>
+        <div class="stat-tile fit-card">
+          <span class="stat-icon">⏳</span>
+          <span class="stat-label">Expiring this month</span>
+          <span class="stat-number">{{ s.expiringThisMonth }}</span>
+        </div>
+        <div class="stat-tile fit-card">
+          <span class="stat-icon">💰</span>
+          <span class="stat-label">Revenue today</span>
+          <span class="stat-number stat-number--revenue">{{ s.revenueToday | currency }}</span>
+        </div>
+      </div>
+    </ng-container>
+  </section>
+</main>
