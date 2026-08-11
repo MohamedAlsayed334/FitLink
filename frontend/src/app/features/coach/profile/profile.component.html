@@ -1,0 +1,111 @@
+<main class="dash">
+  <section class="dash-content">
+    <div class="page-head">
+      <div>
+        <p class="fit-eyebrow">COACH PROFILE</p>
+        <h1 class="page-title">Edit your profile.</h1>
+        <p class="page-copy">Trainees see this when they browse the coaches directory.</p>
+      </div>
+      <div class="head-actions">
+        <span *ngIf="verified" class="verified-badge">VERIFIED</span>
+        <span *ngIf="!verified" class="verified-badge pending">PENDING REVIEW</span>
+        <button type="button" class="fit-btn fit-btn--ghost" (click)="back()">Back</button>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="profile-form fit-card" novalidate>
+      <div class="form-section">
+        <label class="fit-label" for="bio">Bio</label>
+        <textarea
+          id="bio"
+          class="fit-input bio-input"
+          rows="4"
+          formControlName="bio"
+          placeholder="Tell trainees about your coaching approach…"
+        ></textarea>
+      </div>
+
+      <div class="form-section">
+        <label class="fit-label" for="experience">Years of experience</label>
+        <input
+          id="experience"
+          class="fit-input exp-input"
+          type="number"
+          min="0"
+          formControlName="experience"
+        />
+        <span
+          *ngIf="form.get('experience')?.invalid && form.get('experience')?.touched"
+          class="fit-error"
+        >Experience cannot be negative.</span>
+      </div>
+
+      <div class="form-section">
+        <span class="fit-label">Specializations</span>
+        <div class="chips" *ngIf="specializations.length">
+          <button
+            type="button"
+            class="chip"
+            *ngFor="let control of specializations.controls; index as i"
+            (click)="removeSpecialization(i)"
+          >
+            {{ control.value }}
+            <span class="chip-x" aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="chips-add">
+          <input
+            #specInput
+            class="fit-input"
+            placeholder="Add a specialization, e.g. Strength"
+            (keyup.enter)="addSpecialization(specInput)"
+          />
+          <button type="button" class="fit-btn fit-btn--ghost fit-btn--sm" (click)="addSpecialization(specInput)">Add</button>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-head">
+          <span class="fit-label section-label">Certifications</span>
+          <button type="button" class="fit-btn fit-btn--ghost fit-btn--sm" (click)="addCertification()">
+            + Add certification
+          </button>
+        </div>
+        <div class="cert-list" formArrayName="certifications">
+          <div class="cert-row" *ngFor="let cert of certifications.controls; index as i" [formGroupName]="i">
+            <div class="field">
+              <label class="fit-label" [attr.for]="'cert-name-' + i">Name</label>
+              <input [id]="'cert-name-' + i" class="fit-input" formControlName="name" placeholder="e.g. NSCA-CPT" />
+            </div>
+            <div class="field">
+              <label class="fit-label" [attr.for]="'cert-issuer-' + i">Issuer</label>
+              <input [id]="'cert-issuer-' + i" class="fit-input" formControlName="issuer" placeholder="e.g. NSCA" />
+            </div>
+            <div class="field cert-year">
+              <label class="fit-label" [attr.for]="'cert-year-' + i">Year</label>
+              <input [id]="'cert-year-' + i" class="fit-input" type="number" formControlName="year" />
+            </div>
+            <button type="button" class="remove-btn" aria-label="Remove certification" (click)="removeCertification(i)">
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section toggle-row">
+        <div class="toggle-copy">
+          <span class="fit-label toggle-label">Accepting new clients</span>
+          <p class="toggle-hint">Shows you as available in the coaches directory.</p>
+        </div>
+        <input id="accepting" type="checkbox" class="toggle" formControlName="isAcceptingClients" />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="fit-btn fit-btn--primary" [disabled]="saving || form.invalid">
+          {{ saving ? 'Saving…' : 'Save changes' }}
+        </button>
+        <button type="button" class="fit-btn fit-btn--ghost" (click)="reset()">Reset</button>
+      </div>
+    </form>
+  </section>
+</main>
