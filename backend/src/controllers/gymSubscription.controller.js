@@ -43,7 +43,8 @@ export const createSubscription = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     finalAmount,
-    paymentStatus: "paid",
+    // Trainee self-service: payment is captured async via Paymob webhook
+    paymentStatus: "pending",
     status: "active",
     history: [{ action: "created", date: new Date() }],
   });
@@ -273,8 +274,19 @@ export const renewSubscription = asyncHandler(async (req, res) => {
     throw err;
   }
 
+  // Prevent trainees from stacking unpaid renewals: a self-service renew issues
+  // a pending payment, so reject renewing while one is still outstanding.
+  if (req.user.role === "trainee" && sub.paymentStatus === "pending") {
+    const err = new Error("Complete the outstanding payment before renewing again.");
+    err.statusCode = 409;
+    throw err;
+  }
+
   sub.finalAmount = calculateFinalPrice(pkg.basePrice, pkg.discountPercent);
-  sub.paymentStatus = "paid";
+  // Trainee self-renew is a self-service purchase: payment is captured async
+  // via the Paymob webhook. Employee/admin renewals are physical sales and
+  // remain paid immediately.
+  sub.paymentStatus = req.user.role === "trainee" ? "pending" : "paid";
 
   if (sub.status === "cancelled") {
     // Re-subscribe: start a fresh period from today

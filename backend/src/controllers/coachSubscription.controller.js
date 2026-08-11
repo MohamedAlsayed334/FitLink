@@ -87,7 +87,8 @@ export const createSubscription = asyncHandler(async (req, res) => {
     endDate,
     status: "active",
     finalAmount,
-    paymentStatus: "paid",
+    // Trainee self-service: payment is captured async via Paymob webhook
+    paymentStatus: "pending",
     history: [{ action: "created", date: new Date() }],
   });
 
