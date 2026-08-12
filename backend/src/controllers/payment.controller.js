@@ -100,13 +100,17 @@ export const paymobWebhook = asyncHandler(async (req, res) => {
   sub.history.push({ action: "payment_confirmed", note: "Paid via Paymob" });
   await sub.save();
 
-  await notify({
-    recipientId: sub.traineeId,
-    type: "subscription_activated",
-    title: "Subscription activated",
-    body: `Your ${subscriptionType} subscription is now active until ${new Date(sub.endDate).toDateString()}.`,
-    data: { subscriptionId: sub._id },
-  });
+  try {
+    await notify({
+      recipientId: sub.traineeId,
+      type: "subscription_activated",
+      title: "Subscription activated",
+      body: `Your ${subscriptionType} subscription is now active until ${new Date(sub.endDate).toDateString()}.`,
+      data: { subscriptionId: sub._id },
+    });
+  } catch (error) {
+    console.error("Webhook: failed to send activation notification:", error.message);
+  }
 
   res.status(200).json({ received: true });
 });

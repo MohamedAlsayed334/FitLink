@@ -8,6 +8,7 @@ const notificationSchema = new Schema(
       type: String,
       enum: [
         "subscription_created",
+        "subscription_activated",
         "subscription_renewed",
         "expiry_reminder",
         "expiry_reminder_final",

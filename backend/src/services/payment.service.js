@@ -3,6 +3,31 @@ import { createHmac } from "crypto";
 
 const PAYMOB_API = "https://accept.paymob.com/v1";
 
+// Paymob's API is intermittently slow / drops connections. Retry transient
+// network failures (connect timeouts, DNS, reset) with backoff before giving up.
+async function paymobFetch(path, options, retries = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fetch(`${PAYMOB_API}${path}`, {
+        ...options,
+        signal: AbortSignal.timeout(15000),
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+  }
+  const err = new Error(
+    `Paymob API unreachable: ${lastError?.cause?.message || lastError?.message || "network error"}`
+  );
+  err.statusCode = 502;
+  err.details = lastError;
+  throw err;
+}
+
 // creates a payment intention on Paymob and returns the checkout URL
 export async function createPaymentIntention({
   amountCents,
@@ -12,7 +37,7 @@ export async function createPaymentIntention({
   traineeEmail,
   traineeName,
 }) {
-  const response = await fetch(`${PAYMOB_API}/intention/`, {
+  const response = await paymobFetch("/intention/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
