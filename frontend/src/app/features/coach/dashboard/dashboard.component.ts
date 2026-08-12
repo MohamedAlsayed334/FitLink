@@ -76,17 +76,6 @@ export class CoachDashboardComponent implements OnInit {
     return this.auth.currentUser?.coachProfile;
   }
 
-  get stars(): number[] {
-    const rating = this.coachProfile?.averageRating || 0;
-    const max = 5;
-    return Array.from({ length: max }, (_, i) => {
-      const val = rating - i;
-      if (val >= 1) return 1;
-      if (val > 0) return 0.5;
-      return 0;
-    });
-  }
-
   get totalTrainees(): number {
     return this.trainees.filter((t) => t.status === 'active').length;
   }

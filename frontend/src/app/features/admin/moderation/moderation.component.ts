@@ -18,6 +18,21 @@ export class AdminModerationComponent implements OnInit {
 
   constructor(private ratingService: RatingService, private toast: ToastService) {}
 
+  traineeName(r: Rating): string {
+    const trainee = r.traineeId as unknown as
+      | { firstName?: string; lastName?: string }
+      | string
+      | null
+      | undefined;
+    if (typeof trainee === 'object' && trainee) {
+      const name = `${trainee.firstName || ''} ${trainee.lastName || ''}`.trim();
+      if (name) {
+        return name;
+      }
+    }
+    return 'Trainee';
+  }
+
   ngOnInit(): void {
     this.load();
   }

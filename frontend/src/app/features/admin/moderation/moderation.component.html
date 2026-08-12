@@ -23,7 +23,7 @@
 
           <blockquote *ngIf="r.comment">{{ r.comment }}</blockquote>
 
-          <p class="criteria-line">Trainee {{ r.traineeId }} · {{ r.createdAt | date:'mediumDate' }}</p>
+          <p class="criteria-line">Trainee {{ traineeName(r) }} · {{ r.createdAt | date:'mediumDate' }}</p>
 
           <div class="actions" *ngIf="noteFor !== r._id">
             <button class="fit-btn fit-btn--primary" (click)="approve(r)">Approve</button>

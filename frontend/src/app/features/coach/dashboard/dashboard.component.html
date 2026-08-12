@@ -18,12 +18,7 @@
         <p class="fit-eyebrow">YOUR RATING</p>
         <div class="rating-line">
           <span class="rating-num">{{ coachProfile.averageRating | number: '1.1-1' }}</span>
-          <span class="stars" [attr.aria-label]="'Rated ' + coachProfile.averageRating + ' out of 5'">
-            <span *ngFor="let star of stars" class="star" [class.filled]="star >= 0.5" [class.half]="star > 0 && star < 1" aria-hidden="true">
-              <ng-container *ngIf="star >= 1">★</ng-container>
-              <ng-container *ngIf="star > 0 && star < 1">⯨</ng-container>
-            </span>
-          </span>
+          <fit-star-rating [rating]="coachProfile.averageRating || 0"></fit-star-rating>
         </div>
         <p class="rating-meta">
           {{ coachProfile.totalReviews }} review{{ coachProfile.totalReviews === 1 ? '' : 's' }}

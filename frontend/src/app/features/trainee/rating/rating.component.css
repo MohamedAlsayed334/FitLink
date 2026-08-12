@@ -98,7 +98,7 @@
   transform: scale(1.1);
 }
 
-.star.active {
+.stars .star.active {
   color: var(--signal);
 }
 
